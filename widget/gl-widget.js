@@ -706,7 +706,7 @@
       // Greeting
       const name = this.config.communityName || 'our community';
       const greeting = this.config.greeting ||
-        ("Welcome! I'm your personal advisor for " + name + ". I can answer questions about our living options, amenities, pricing, and help you schedule a tour. How can I help you today?");
+        ("Hi! I'm Sarah, your advisor here at " + name + ". Are you exploring senior living options for yourself or a loved one?");
       this.addMessage({ role: 'ai', content: greeting });
 
       // Quick replies
@@ -850,7 +850,7 @@
           try {
             const data = JSON.parse(xhr.responseText);
             const text = data.response || "I'm sorry, I couldn't process that. Could you rephrase?";
-            this.addMessage({ role: 'ai', content: text });
+            this.addMessage({ role: 'ai', content: text, html: this._formatAIText(text) });
 
             // Handle actions
             if (data.suggestedActions && data.suggestedActions.length > 0) {
@@ -1015,10 +1015,10 @@
       if (!container) return;
 
       const suggestions = [
-        'Pricing & care options',
-        'Schedule a tour',
-        'Amenities & dining',
-        'What\u2019s included?'
+        'What does it cost?',
+        'I\u2019d like to schedule a tour',
+        'Tell me about the amenities',
+        'What\u2019s included in rent?'
       ];
 
       suggestions.forEach(text => {
@@ -1041,6 +1041,19 @@
       const div = document.createElement('div');
       div.textContent = s || '';
       return div.innerHTML;
+    }
+
+    _formatAIText(text) {
+      // Escape HTML first for safety
+      let safe = this._escHtml(text);
+      // Convert newlines to <br>
+      safe = safe.replace(/\n/g, '<br>');
+      // Strip any stray markdown bold/italic (AI told not to use it, but just in case)
+      safe = safe.replace(/\*\*(.+?)\*\*/g, '$1');
+      safe = safe.replace(/\*(.+?)\*/g, '$1');
+      // Convert markdown-style bullet lines to plain text
+      safe = safe.replace(/<br>\s*[-•]\s+/g, '<br>• ');
+      return safe;
     }
   }
 

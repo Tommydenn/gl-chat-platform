@@ -25,6 +25,8 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 # ── File paths for persistence ──
 COMMUNITIES_FILE = "/tmp/gl_communities.json"
 LEADS_FILE = "/tmp/gl_leads.json"
+SEED_VERSION_FILE = "/tmp/gl_seed_version.txt"
+SEED_VERSION = "3"  # Bump this to force re-seed with enriched data
 
 # ── In-memory data store (synced with files on startup) ──
 COMMUNITIES = {}
@@ -55,8 +57,33 @@ def _seed():
     """Initialize communities and leads from files or defaults."""
     global COMMUNITIES, LEADS
 
-    # Load from files first
-    COMMUNITIES = _load_from_file(COMMUNITIES_FILE, {})
+    # Check seed version — if outdated, wipe communities to force re-seed
+    current_version = ""
+    try:
+        if os.path.exists(SEED_VERSION_FILE):
+            with open(SEED_VERSION_FILE, "r") as f:
+                current_version = f.read().strip()
+    except Exception:
+        pass
+
+    if current_version != SEED_VERSION:
+        # Version mismatch — clear old community data to force re-seed
+        COMMUNITIES = {}
+        try:
+            if os.path.exists(COMMUNITIES_FILE):
+                os.remove(COMMUNITIES_FILE)
+        except Exception:
+            pass
+        # Write new version
+        try:
+            with open(SEED_VERSION_FILE, "w") as f:
+                f.write(SEED_VERSION)
+        except Exception:
+            pass
+    else:
+        COMMUNITIES = _load_from_file(COMMUNITIES_FILE, {})
+
+    # Always load leads (don't wipe those)
     LEADS = _load_from_file(LEADS_FILE, {})
 
     # Seed default community if not present
@@ -77,8 +104,8 @@ def _seed():
             "gallery_url": "https://glennseniorliving.com/west-st-paul-mn/",
             "floor_plans_thumb": None,
             "gallery_thumb": None,
-            "advisor_name": "Community Assistant",
-            "greeting": "Hi there! I'm here to help you explore",
+            "advisor_name": "Sarah",
+            "greeting": "Hi! I'm Sarah, your advisor here at The Glenn. Are you exploring senior living options for yourself or a loved one?",
             "tour_enabled": True,
             "sms_enabled": True,
             "care_types": [
@@ -86,20 +113,33 @@ def _seed():
                 {"name": "Assisted Living", "startingAt": 5020},
                 {"name": "Memory Care", "startingAt": 5385}
             ],
-            "community_description": "A faith-based senior community for adults 62 and over in West St. Paul, Minnesota. The Glenn offers Independent Living, Assisted Living, and Memory Care with a warm, welcoming environment.",
-            "amenities": "Restaurant-style dining, Fitness center, Chapel, Library, Beauty salon, Walking paths, Community garden, Activity rooms, Underground parking, Emergency call system",
-            "dining_info": "Three chef-prepared meals daily included. Restaurant-style dining room with seasonal menus. Special dietary accommodations available.",
-            "activities": "Daily social activities, Exercise classes, Arts and crafts, Book clubs, Movie nights, Live entertainment, Community outings, Spiritual services, Holiday celebrations",
-            "pet_policy": "Small pets welcome with approval. Pet deposit may apply.",
-            "visiting_hours": "Visitors welcome anytime during regular hours. 24/7 access for family members of Memory Care residents with prior arrangement.",
-            "transportation": "Scheduled transportation for medical appointments and community outings.",
-            "staff_info": "24/7 trained staff on-site. Licensed nurses available. Personalized care plans for each resident.",
-            "move_in_info": "Contact us to schedule a tour and learn about current availability. We offer flexible move-in timelines and can help with the transition process.",
+            "community_description": "A faith-based senior community for adults 62 and over in West St. Paul, Minnesota. The Glenn offers Independent Living, Assisted Living, and Memory Care. Suburban setting, close to parks and hospitals. Minimum age 62. Couples welcome. No move-in fee. Month-to-month leasing available.",
+            "room_types": "Studios, 1 Bedroom/1 Bath, 2 Bedroom/1 Bath. All units include individual climate control, private kitchenette, refrigerator, microwave, safety-assist bathroom, walk-in shower, and emergency pendant system. Residents can bring their own furniture.",
+            "amenities": "Activity center, Beauty salon, Chapel, Communal kitchen, Elevators, Exercise room, Fireplace lounge, Individual mailboxes, High-speed internet and WiFi, Library, Movie room, On-site parking, Party/event space, Shared computers, Sun room, Secure memory care wing, Outdoor courtyard, Garden areas, Walking paths, Landscaped grounds, Patio seating",
+            "dining_info": "Three chef-prepared meals daily (breakfast, lunch, dinner) plus snacks. Restaurant-style dining room with changing seasonal menus and nightly specials. Bistro and cafe seating available. Private dining room for family events. Accommodates diabetic, gluten-free, low-sugar/salt, vegetarian diets and other therapeutic diets.",
+            "activities": "Indoor: Activity programs, arts and crafts, billiards, book clubs, card games, exercise classes, game nights, live entertainment, movie nights, piano, wellness programs, men's and women's groups, intergenerational programs. Outdoor: Accompanied walks, day trips, gardening, park visits, community outings, volunteer opportunities.",
+            "pet_policy": "Small pets welcome with approval. Pet deposit may apply. Community also has shared community pets.",
+            "visiting_hours": "Flexible visiting hours — mornings, afternoons, and evenings. Guests welcome at mealtimes. On-site parking for guests. Overnight guests allowed with arrangement.",
+            "transportation": "Scheduled local transportation for medical appointments, personal errands, shopping trips, events, and religious services. Wheelchair-accessible transportation available.",
+            "staff_info": "24/7 trained staff on-site. Licensed nurses available. Staff background checks required. English and Spanish spoken. Emergency pendant system in every unit. Personalized care plans for each resident. Services include medication management, bathing/dressing/grooming assistance, incontinence care, transfer assistance, concierge services, and accompaniment to medical appointments.",
+            "daily_living_services": "Medication management, bathing assistance, dressing assistance, grooming assistance, eating assistance, transfer assistance, incontinence care, emergency pendant system, check-in care, concierge services, errand assistance, grocery shopping assistance, prescription pickup",
+            "cleaning_services": "Housekeeping included, linen services included, full-service laundry available",
+            "security": "24-hour security, staff background checks, secure memory care unit, emergency pendant system in all units",
+            "included_in_rent": "Three meals daily, utilities, basic cable, high-speed internet/WiFi, weekly housekeeping, linen service, scheduled transportation, all activities and amenities",
+            "move_in_info": "No move-in fee. Month-to-month lease available. Flexible move-in timelines. We help with the entire transition process. Respite (short-term) stays also available to try us out.",
+            "additional_care": "Physical therapy available on-site. Private aides allowed for additional care. Respite/short-term stays provided. Adult day care not offered. Fully wheelchair accessible.",
+            "accepted_programs": "Medicare accepted. Private pay.",
+            "smoking_policy": "Smoking not allowed indoors. Outdoor smoking areas available.",
+            "religious_services": "Chapel on-site, regular spiritual services, devotional areas, chaplain available.",
             "faq": [
-                {"q": "What is included in the monthly cost?", "a": "Monthly rent includes your apartment, three meals daily, utilities, basic cable, weekly housekeeping, scheduled transportation, and access to all community amenities and activities."},
-                {"q": "Can I bring my own furniture?", "a": "Yes! We encourage residents to bring personal furnishings to make their apartment feel like home."},
-                {"q": "Is there a waiting list?", "a": "Availability varies. Contact us to check current openings and join our interest list."},
-                {"q": "What level of care is available?", "a": "We offer Independent Living, Assisted Living, and Memory Care, with personalized care plans that can adjust as needs change."}
+                {"q": "What is included in the monthly cost?", "a": "Your apartment, three meals daily, utilities, basic cable, WiFi, weekly housekeeping, linen service, scheduled transportation, and access to all amenities and activities."},
+                {"q": "Can I bring my own furniture?", "a": "Absolutely! We encourage it. Your apartment should feel like home."},
+                {"q": "Is there a waiting list?", "a": "Availability changes frequently. Best to schedule a tour so we can show you what's open right now."},
+                {"q": "Can couples live together?", "a": "Yes, we welcome couples and can accommodate them in our larger floor plans."},
+                {"q": "Do you offer short-term stays?", "a": "Yes, we offer respite stays so you or your loved one can try the community before committing."},
+                {"q": "What if care needs change over time?", "a": "We offer Independent Living, Assisted Living, and Memory Care all on one campus, so residents can transition seamlessly as needs change."},
+                {"q": "Is there a minimum lease?", "a": "We offer month-to-month leasing. No long-term commitment required."},
+                {"q": "Are pets allowed?", "a": "Yes, small pets are welcome with approval."}
             ],
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat(),
@@ -178,60 +218,78 @@ def community_to_widget_config(c):
 
 
 def _build_system_prompt(community):
-    """Build a system prompt for the Anthropic API with community context."""
+    """Build a conversational, conversion-focused system prompt."""
     care_types_text = ""
     if community.get("care_types"):
-        care_types_text = "\n\nCare Types & Pricing:\n"
         for ct in community.get("care_types", []):
-            care_types_text += f"- {ct.get('name')}: Starting at ${ct.get('startingAt', 'N/A')}/month\n"
+            care_types_text += f"  {ct.get('name')}: starting at ${ct.get('startingAt', 'N/A')}/month\n"
+
+    # Gather all knowledge fields
+    knowledge_fields = [
+        ("Description", "community_description"),
+        ("Room Types", "room_types"),
+        ("Amenities", "amenities"),
+        ("Dining", "dining_info"),
+        ("Activities", "activities"),
+        ("Pet Policy", "pet_policy"),
+        ("Visiting", "visiting_hours"),
+        ("Transportation", "transportation"),
+        ("Staff & Care", "staff_info"),
+        ("Daily Living Services", "daily_living_services"),
+        ("Cleaning", "cleaning_services"),
+        ("Security", "security"),
+        ("Included in Rent", "included_in_rent"),
+        ("Move-In", "move_in_info"),
+        ("Additional Care", "additional_care"),
+        ("Accepted Programs", "accepted_programs"),
+        ("Smoking", "smoking_policy"),
+        ("Religious Services", "religious_services"),
+    ]
+    knowledge_text = ""
+    for label, key in knowledge_fields:
+        val = community.get(key, "")
+        if val:
+            knowledge_text += f"{label}: {val}\n"
 
     faq_text = ""
     if community.get("faq"):
-        faq_text = "\n\nFrequently Asked Questions:\n"
         for item in community.get("faq", []):
-            faq_text += f"Q: {item.get('q')}\nA: {item.get('a')}\n\n"
+            faq_text += f"Q: {item.get('q')} A: {item.get('a')}\n"
 
-    system_prompt = f"""You are a warm, knowledgeable, and empathetic senior living advisor for {community.get('name', 'our community')}.
+    system_prompt = f"""You are {community.get('advisor_name', 'an advisor')} at {community.get('name', 'our community')}. You're chatting with a website visitor through a small chat widget on the community's website.
 
-COMMUNITY INFORMATION:
+PERSONALITY: You are warm, friendly, and genuinely helpful — like a real person texting, not a robot. You care about finding the right fit for each person.
+
+=== CRITICAL CONVERSATION RULES ===
+1. KEEP IT SHORT. 1-3 sentences max per response. This is a chat bubble, not an email.
+2. Ask ONE question per response to keep the conversation flowing naturally.
+3. NEVER dump all information at once. Share one thing, then ask what else they'd like to know.
+4. When they ask about pricing, ask which care type first. Only share the relevant price.
+5. DO NOT use markdown formatting (no **, no -, no bullet points). Write like a normal person texting.
+6. DO NOT list things out. If they ask about amenities, mention 2-3 highlights and ask what matters most to them.
+7. Use contractions (we've, you'll, it's). Sound natural and warm.
+8. Mirror their tone — if they're casual, be casual. If they're formal, match that.
+
+=== YOUR GOAL (in this order) ===
+1. Figure out WHO they're looking for (themselves? a parent? spouse?) and WHAT matters most to them.
+2. Answer their questions helpfully and build trust.
+3. After 2-3 exchanges, naturally suggest a tour: "Would you like to come see the community in person? I'd love to show you around."
+4. Get their contact info: "What's the best name and number to reach you at? I'll have our team set something up."
+5. If they hesitate on a tour, offer to send info: "I can have someone send you more details — what's a good email?"
+
+=== COMMUNITY KNOWLEDGE ===
+{community.get('name', 'Our Community')}
 Address: {community.get('address', 'N/A')}
 Phone: {community.get('phone', 'N/A')}
 
-{community.get('community_description', '')}
+Pricing:
+{care_types_text}
+{knowledge_text}
+{faq_text}
 
-AMENITIES:
-{community.get('amenities', 'N/A')}
-
-DINING:
-{community.get('dining_info', 'N/A')}
-
-ACTIVITIES & PROGRAMS:
-{community.get('activities', 'N/A')}
-
-PET POLICY:
-{community.get('pet_policy', 'N/A')}
-
-VISITING HOURS:
-{community.get('visiting_hours', 'N/A')}
-
-TRANSPORTATION:
-{community.get('transportation', 'N/A')}
-
-STAFF & CARE:
-{community.get('staff_info', 'N/A')}
-
-MOVE-IN INFORMATION:
-{community.get('move_in_info', 'N/A')}{care_types_text}{faq_text}
-
-YOUR ROLE:
-1. Answer questions about our community naturally and warmly, using the information provided above.
-2. Be empathetic and understanding — choosing a senior living community is often an emotional decision for families.
-3. Guide conversations toward scheduling tours and providing contact information.
-4. When you sense the visitor is interested or considering a move, gently ask for their name, email, and phone number so we can follow up personally.
-5. Never make up information not in the knowledge base — if unsure, say "I'd recommend speaking with our team directly at {community.get('phone', 'the number above')} to get the most accurate information."
-6. Be professional, warm, and helpful. Remember that many visitors are exploring options for themselves or a loved one.
-
-When suggesting actions like scheduling a tour or following up, be encouraging and make it easy for them."""
+=== IMPORTANT ===
+If you don't know something specific, say "That's a great question — let me connect you with our team at {community.get('phone', 'our front desk')} for the most current info on that."
+Never invent details not in the knowledge base above."""
 
     return system_prompt
 
@@ -244,7 +302,7 @@ def _call_anthropic_api(system_prompt, messages):
     try:
         request_body = {
             "model": "claude-haiku-4-5-20251001",
-            "max_tokens": 1024,
+            "max_tokens": 300,
             "system": system_prompt,
             "messages": messages,
         }
