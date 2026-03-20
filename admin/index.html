@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Great Lakes Management — Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --brand:#2E5339; --brand-h:#1e3a27; --sec:#3A4856; --accent:#4F8636; --bg:#f5f6f8; --card:#fff; --border:#e5e7eb; --text:#1f2937; --muted:#6b7280; --red:#ef4444; --green:#22c55e; --blue:#3b82f6; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* ── LOGIN ── */
+    .login-wrap { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .login-box { background:var(--card); padding:40px; border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,0.08); width:380px; max-width:90vw; }
+    .login-box h1 { font-size:22px; color:var(--brand); margin-bottom:6px; }
+    .login-box p { color:var(--muted); font-size:14px; margin-bottom:24px; }
+    .login-box label { display:block; font-size:13px; font-weight:500; color:var(--sec); margin-bottom:5px; }
+    .login-box input { width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:8px; font-size:14px; margin-bottom:16px; outline:none; transition:border-color .2s; }
+    .login-box input:focus { border-color:var(--brand); }
+    .login-box button { width:100%; padding:12px; background:var(--brand); color:#fff; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; transition:background .15s; }
+    .login-box button:hover { background:var(--brand-h); }
+    .login-err { color:var(--red); font-size:13px; margin-bottom:12px; }
+
+    /* ── NAV ── */
+    .nav { background:var(--brand); color:#fff; padding:12px 32px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+    .nav h1 { font-size:18px; font-weight:700; }
+    .nav-links { display:flex; gap:8px; }
+    .nav-links button { background:rgba(255,255,255,0.15); border:none; color:#fff; padding:8px 16px; border-radius:6px; font-size:13px; font-weight:500; cursor:pointer; transition:background .15s; font-family:inherit; }
+    .nav-links button:hover,.nav-links button.active { background:rgba(255,255,255,0.28); }
+    .nav-right { display:flex; align-items:center; gap:12px; }
+    .nav-right button { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:8px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-family:inherit; }
+
+    /* ── LAYOUT ── */
+    .main { max-width:1200px; margin:0 auto; padding:24px; }
+    .page { display:none; } .page.active { display:block; }
+
+    /* ── STATS ── */
+    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:24px; }
+    .stat-card { background:var(--card); border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+    .stat-card .label { font-size:12px; color:var(--muted); font-weight:500; text-transform:uppercase; letter-spacing:.5px; }
+    .stat-card .value { font-size:28px; font-weight:700; color:var(--brand); margin-top:4px; }
+    .stat-card .sub { font-size:12px; color:var(--muted); margin-top:2px; }
+
+    /* ── TABLE ── */
+    .card { background:var(--card); border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.04); overflow:hidden; margin-bottom:24px; }
+    .card-hdr { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .card-hdr h2 { font-size:16px; font-weight:600; }
+    table { width:100%; border-collapse:collapse; font-size:13.5px; }
+    th { text-align:left; padding:10px 16px; font-weight:600; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.5px; background:#fafbfc; border-bottom:1px solid var(--border); }
+    td { padding:10px 16px; border-bottom:1px solid var(--border); vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:#f9fafb; }
+    .badge { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; }
+    .badge-new { background:#dcfce7; color:#166534; }
+    .badge-contacted { background:#dbeafe; color:#1e40af; }
+    .badge-tour { background:#fef3c7; color:#92400e; }
+
+    /* ── FORM ── */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .form-group { margin-bottom:16px; }
+    .form-group label { display:block; font-size:13px; font-weight:500; color:var(--sec); margin-bottom:5px; }
+    .form-group input, .form-group select, .form-group textarea { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:14px; font-family:inherit; outline:none; transition:border-color .2s; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--brand); }
+    .form-group.full { grid-column:1/-1; }
+    .btn { padding:10px 20px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; border:none; transition:all .15s; font-family:inherit; }
+    .btn-primary { background:var(--brand); color:#fff; } .btn-primary:hover { background:var(--brand-h); }
+    .btn-secondary { background:var(--bg); color:var(--sec); border:1px solid var(--border); } .btn-secondary:hover { background:#e5e7eb; }
+    .btn-danger { background:var(--red); color:#fff; } .btn-danger:hover { opacity:.9; }
+    .btn-sm { padding:6px 12px; font-size:12px; }
+    .actions { display:flex; gap:8px; margin-top:16px; }
+
+    /* ── WIDGET EMBED CODE ── */
+    .embed-box { background:#1e293b; color:#e2e8f0; padding:16px; border-radius:8px; font-family:'Courier New',monospace; font-size:12.5px; line-height:1.6; overflow-x:auto; white-space:pre-wrap; word-break:break-all; position:relative; }
+    .embed-box .copy-btn { position:absolute; top:8px; right:8px; background:#475569; color:#fff; border:none; padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer; }
+    .embed-box .copy-btn:hover { background:#64748b; }
+
+    /* ── CARE TYPES EDITOR ── */
+    .care-list { list-style:none; }
+    .care-item { display:flex; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+    .care-item input { flex:1; }
+    .care-item .price-input { width:120px; }
+    .care-item button { background:none; border:none; color:var(--red); cursor:pointer; font-size:18px; padding:4px; }
+    .add-care-btn { margin-top:8px; background:none; border:1.5px dashed var(--border); padding:8px 16px; border-radius:8px; color:var(--muted); cursor:pointer; font-size:13px; width:100%; transition:all .15s; }
+    .add-care-btn:hover { border-color:var(--brand); color:var(--brand); }
+
+    .empty-state { text-align:center; padding:48px 24px; color:var(--muted); }
+    .empty-state p { margin-bottom:16px; }
+
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; z-index:1000; }
+    .modal { background:var(--card); border-radius:16px; padding:32px; max-width:600px; width:90vw; max-height:85vh; overflow-y:auto; }
+    .modal h2 { margin-bottom:20px; font-size:18px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════ LOGIN SCREEN ═══════ -->
+<div id="loginScreen" class="login-wrap">
+  <div class="login-box">
+    <h1>Great Lakes Management</h1>
+    <p>Community Assistant — Admin Dashboard</p>
+    <div id="loginErr" class="login-err" style="display:none;"></div>
+    <label>Username</label>
+    <input id="loginUser" type="text" value="admin"/>
+    <label>Password</label>
+    <input id="loginPass" type="password" placeholder="Enter password"/>
+    <button id="loginBtn">Sign In</button>
+  </div>
+</div>
+
+<!-- ═══════ DASHBOARD ═══════ -->
+<div id="dashboard" style="display:none;">
+  <div class="nav">
+    <h1>GL Community Assistant</h1>
+    <div class="nav-links">
+      <button class="active" data-page="overview">Overview</button>
+      <button data-page="leads">Leads</button>
+      <button data-page="communities">Communities</button>
+    </div>
+    <div class="nav-right">
+      <button id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- ── OVERVIEW ── -->
+    <div id="page-overview" class="page active">
+      <h2 style="margin-bottom:16px;">Dashboard Overview</h2>
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="card">
+        <div class="card-hdr"><h2>Recent Leads</h2></div>
+        <table><thead><tr><th>Name</th><th>Community</th><th>Care Type</th><th>Email</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody id="recentLeadsTable"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ── LEADS ── -->
+    <div id="page-leads" class="page">
+      <div class="card">
+        <div class="card-hdr">
+          <h2>All Leads</h2>
+          <div style="display:flex;gap:8px;">
+            <select id="leadFilterCommunity" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;"><option value="">All Communities</option></select>
+            <select id="leadFilterStatus" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;">
+              <option value="">All Statuses</option><option value="new">New</option><option value="contacted">Contacted</option><option value="tour_scheduled">Tour Scheduled</option><option value="closed">Closed</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" id="exportBtn">Export CSV</button>
+          </div>
+        </div>
+        <table><thead><tr><th>Name</th><th>Community</th><th>Care Type</th><th>Timeline</th><th>Email</th><th>Phone</th><th>Status</th><th>Date</th><th></th></tr></thead>
+        <tbody id="leadsTable"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ── COMMUNITIES ── -->
+    <div id="page-communities" class="page">
+      <div class="card">
+        <div class="card-hdr">
+          <h2>Communities</h2>
+          <button class="btn btn-primary btn-sm" id="addCommunityBtn">+ Add Community</button>
+        </div>
+        <table><thead><tr><th>Community</th><th>Address</th><th>Phone</th><th>Care Types</th><th>Leads</th><th></th></tr></thead>
+        <tbody id="communitiesTable"></tbody></table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? `http://localhost:5000`
+  : '';
+let TOKEN = localStorage.getItem('gl_token') || '';
+let communities = [];
+let leads = [];
+
+// ── API helpers ──
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (TOKEN) headers['Authorization'] = `Bearer ${TOKEN}`;
+  const res = await fetch(`${API}${path}`, { ...opts, headers: { ...headers, ...opts.headers } });
+  if (res.status === 401) { logout(); throw new Error('Unauthorized'); }
+  return res;
+}
+async function apiJson(path, opts) { return (await api(path, opts)).json(); }
+
+// ── Auth ──
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const user = document.getElementById('loginUser').value;
+  const pass = document.getElementById('loginPass').value;
+  try {
+    const data = await apiJson('/api/auth/login', { method: 'POST', body: JSON.stringify({ username: user, password: pass }) });
+    if (data.token) {
+      TOKEN = data.token;
+      localStorage.setItem('gl_token', TOKEN);
+      showDashboard();
+    } else {
+      document.getElementById('loginErr').textContent = data.error || 'Login failed';
+      document.getElementById('loginErr').style.display = 'block';
+    }
+  } catch (e) {
+    document.getElementById('loginErr').textContent = 'Connection failed. Is the server running?';
+    document.getElementById('loginErr').style.display = 'block';
+  }
+});
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
+
+document.getElementById('logoutBtn').addEventListener('click', logout);
+function logout() {
+  TOKEN = '';
+  localStorage.removeItem('gl_token');
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+// ── Navigation ──
+document.querySelectorAll('.nav-links button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`page-${btn.dataset.page}`).classList.add('active');
+    if (btn.dataset.page === 'leads') loadLeads();
+    if (btn.dataset.page === 'communities') loadCommunities();
+    if (btn.dataset.page === 'overview') loadOverview();
+  });
+});
+
+// ── Dashboard init ──
+async function showDashboard() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  loadOverview();
+}
+
+// ── OVERVIEW ──
+async function loadOverview() {
+  try {
+    const stats = await apiJson('/api/admin/stats');
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><div class="label">Total Leads</div><div class="value">${stats.totalLeads}</div></div>
+      <div class="stat-card"><div class="label">New Leads</div><div class="value" style="color:var(--green)">${stats.newLeads}</div></div>
+      <div class="stat-card"><div class="label">This Week</div><div class="value">${stats.leadsThisWeek}</div></div>
+      <div class="stat-card"><div class="label">This Month</div><div class="value">${stats.leadsThisMonth}</div></div>
+      <div class="stat-card"><div class="label">Communities</div><div class="value" style="color:var(--accent)">${stats.totalCommunities}</div></div>
+    `;
+    document.getElementById('recentLeadsTable').innerHTML = stats.recentLeads.map(l => `
+      <tr>
+        <td><strong>${l.name || '—'}</strong></td>
+        <td>${l.community_name || '—'}</td>
+        <td>${l.care_type || '—'}</td>
+        <td>${l.email || '—'}</td>
+        <td><span class="badge badge-${l.status}">${l.status}</span></td>
+        <td>${l.created_at ? new Date(l.created_at).toLocaleDateString() : '—'}</td>
+      </tr>
+    `).join('');
+  } catch (e) { console.error('Failed to load overview:', e); }
+}
+
+// ── LEADS ──
+async function loadLeads() {
+  const community = document.getElementById('leadFilterCommunity').value;
+  const status = document.getElementById('leadFilterStatus').value;
+  let url = '/api/admin/leads?limit=200';
+  if (community) url += `&community=${community}`;
+  if (status) url += `&status=${status}`;
+  try {
+    const data = await apiJson(url);
+    leads = data.leads;
+    renderLeads();
+    // Populate community filter
+    const comms = await apiJson('/api/admin/communities');
+    const sel = document.getElementById('leadFilterCommunity');
+    if (sel.options.length <= 1) {
+      comms.communities.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id; opt.textContent = c.name;
+        sel.appendChild(opt);
+      });
+    }
+  } catch (e) { console.error(e); }
+}
+
+function renderLeads() {
+  document.getElementById('leadsTable').innerHTML = leads.length === 0
+    ? '<tr><td colspan="9" class="empty-state">No leads yet</td></tr>'
+    : leads.map(l => `
+    <tr>
+      <td><strong>${l.name || '—'}</strong></td>
+      <td>${l.community_name || '—'}</td>
+      <td>${l.care_type || '—'}</td>
+      <td>${l.timeline || '—'}</td>
+      <td><a href="mailto:${l.email}">${l.email || '—'}</a></td>
+      <td>${l.phone || '—'}</td>
+      <td>
+        <select onchange="updateLeadStatus('${l.id}', this.value)" style="padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;">
+          <option value="new" ${l.status==='new'?'selected':''}>New</option>
+          <option value="contacted" ${l.status==='contacted'?'selected':''}>Contacted</option>
+          <option value="tour_scheduled" ${l.status==='tour_scheduled'?'selected':''}>Tour Scheduled</option>
+          <option value="closed" ${l.status==='closed'?'selected':''}>Closed</option>
+        </select>
+      </td>
+      <td>${l.created_at ? new Date(l.created_at).toLocaleDateString() : '—'}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="deleteLead('${l.id}')">×</button></td>
+    </tr>
+  `).join('');
+}
+
+window.updateLeadStatus = async (id, status) => {
+  await api(`/api/admin/leads/${id}`, { method: 'PUT', body: JSON.stringify({ status }) });
+};
+window.deleteLead = async (id) => {
+  if (!confirm('Delete this lead?')) return;
+  await api(`/api/admin/leads/${id}`, { method: 'DELETE' });
+  loadLeads();
+};
+
+document.getElementById('leadFilterCommunity').addEventListener('change', loadLeads);
+document.getElementById('leadFilterStatus').addEventListener('change', loadLeads);
+document.getElementById('exportBtn').addEventListener('click', async () => {
+  const community = document.getElementById('leadFilterCommunity').value;
+  let url = `${API}/api/admin/leads/export`;
+  if (community) url += `?community=${community}`;
+  const res = await fetch(url, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+  const blob = await res.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `leads_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+});
+
+// ── COMMUNITIES ──
+async function loadCommunities() {
+  try {
+    const data = await apiJson('/api/admin/communities');
+    communities = data.communities;
+    renderCommunities();
+  } catch (e) { console.error(e); }
+}
+
+function renderCommunities() {
+  document.getElementById('communitiesTable').innerHTML = communities.length === 0
+    ? '<tr><td colspan="6" class="empty-state"><p>No communities yet</p><button class="btn btn-primary" onclick="openCommunityModal()">Add Your First Community</button></td></tr>'
+    : communities.map(c => `
+    <tr>
+      <td><strong>${c.name}</strong><br/><span style="font-size:11px;color:var(--muted)">${c.slug}</span></td>
+      <td>${c.address || '—'}</td>
+      <td>${c.phone || '—'}</td>
+      <td>${(c.care_types||[]).map(ct => typeof ct === 'string' ? ct : ct.name).join(', ')}</td>
+      <td>—</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-secondary btn-sm" onclick="editCommunity('${c.id}')">Edit</button>
+        <button class="btn btn-secondary btn-sm" onclick="showEmbed('${c.id}')">Embed</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('addCommunityBtn').addEventListener('click', () => openCommunityModal());
+
+window.openCommunityModal = function(existing) {
+  const c = existing || {};
+  const careTypes = c.care_types || [{ name: '', startingAt: null }];
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <h2>${c.id ? 'Edit' : 'Add'} Community</h2>
+      <div class="form-grid">
+        <div class="form-group"><label>Community Name *</label><input id="m-name" value="${c.name||''}"/></div>
+        <div class="form-group"><label>Slug</label><input id="m-slug" value="${c.slug||''}" placeholder="auto-generated"/></div>
+        <div class="form-group"><label>Address</label><input id="m-address" value="${c.address||''}"/></div>
+        <div class="form-group"><label>Phone</label><input id="m-phone" value="${c.phone||''}"/></div>
+        <div class="form-group"><label>Brand Color</label><input id="m-color" type="color" value="${c.brand_color||'#2E5339'}"/></div>
+        <div class="form-group"><label>Accent Color</label><input id="m-accent" type="color" value="${c.accent_color||'#4F8636'}"/></div>
+        <div class="form-group"><label>Floor Plans URL</label><input id="m-fp" value="${c.floor_plans_url||''}"/></div>
+        <div class="form-group"><label>Gallery URL</label><input id="m-gal" value="${c.gallery_url||''}"/></div>
+        <div class="form-group"><label>Logo URL</label><input id="m-logo" value="${c.logo_url||''}"/></div>
+        <div class="form-group"><label>Advisor Name</label><input id="m-advisor" value="${c.advisor_name||'Community Assistant'}"/></div>
+        <div class="form-group full">
+          <label>Care Types & Pricing</label>
+          <ul class="care-list" id="m-care">${careTypes.map((ct,i) => `
+            <li class="care-item">
+              <input placeholder="Care type name" value="${typeof ct === 'string' ? ct : ct.name||''}" class="care-name"/>
+              <input type="number" placeholder="Starting at $" value="${ct.startingAt||''}" class="care-price price-input"/>
+              <button onclick="this.parentElement.remove()">×</button>
+            </li>`).join('')}
+          </ul>
+          <button class="add-care-btn" onclick="document.getElementById('m-care').insertAdjacentHTML('beforeend','<li class=\\'care-item\\'><input placeholder=\\'Care type\\' class=\\'care-name\\'/><input type=\\'number\\' placeholder=\\'Starting at $\\' class=\\'care-price price-input\\'/><button onclick=\\'this.parentElement.remove()\\'>×</button></li>')">+ Add Care Type</button>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" id="m-save">${c.id ? 'Save Changes' : 'Create Community'}</button>
+        <button class="btn btn-secondary" id="m-cancel">Cancel</button>
+        ${c.id ? `<button class="btn btn-danger" id="m-delete" style="margin-left:auto;">Delete</button>` : ''}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector('#m-cancel').addEventListener('click', () => overlay.remove());
+
+  if (c.id) {
+    const del = overlay.querySelector('#m-delete');
+    if (del) del.addEventListener('click', async () => {
+      if (!confirm('Delete this community and all its data?')) return;
+      await api(`/api/admin/communities/${c.id}`, { method: 'DELETE' });
+      overlay.remove();
+      loadCommunities();
+    });
+  }
+
+  overlay.querySelector('#m-save').addEventListener('click', async () => {
+    const careItems = overlay.querySelectorAll('.care-item');
+    const careTypes = Array.from(careItems).map(li => ({
+      name: li.querySelector('.care-name').value,
+      startingAt: li.querySelector('.care-price').value ? Number(li.querySelector('.care-price').value) : null
+    })).filter(ct => ct.name);
+
+    const body = {
+      name: overlay.querySelector('#m-name').value,
+      slug: overlay.querySelector('#m-slug').value || undefined,
+      address: overlay.querySelector('#m-address').value,
+      phone: overlay.querySelector('#m-phone').value,
+      brandColor: overlay.querySelector('#m-color').value,
+      accentColor: overlay.querySelector('#m-accent').value,
+      floorPlansUrl: overlay.querySelector('#m-fp').value,
+      galleryUrl: overlay.querySelector('#m-gal').value,
+      logoUrl: overlay.querySelector('#m-logo').value,
+      advisorName: overlay.querySelector('#m-advisor').value,
+      careTypes: careTypes,
+    };
+
+    if (c.id) {
+      await api(`/api/admin/communities/${c.id}`, { method: 'PUT', body: JSON.stringify(body) });
+    } else {
+      await api('/api/admin/communities', { method: 'POST', body: JSON.stringify(body) });
+    }
+    overlay.remove();
+    loadCommunities();
+  });
+};
+
+window.editCommunity = function(id) {
+  const c = communities.find(x => x.id === id);
+  if (c) openCommunityModal(c);
+};
+
+window.showEmbed = function(id) {
+  const c = communities.find(x => x.id === id);
+  if (!c) return;
+  const code = `<script src="https://yourdomain.com/widget/gl-loader.js"
+  data-community-id="${c.id}"
+  data-api="https://yourdomain.com"><\/script>`;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <h2>Embed Code — ${c.name}</h2>
+      <p style="margin-bottom:16px;color:var(--muted);font-size:14px;">Add this script tag to your website to show the chat widget:</p>
+      <div class="embed-box"><button class="copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('code').textContent);this.textContent='Copied!'">Copy</button><code>${code.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</code></div>
+      <div class="actions" style="margin-top:16px;"><button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Close</button></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+};
+
+// ── Auto-login if token exists ──
+if (TOKEN) {
+  api('/api/admin/stats').then(r => {
+    if (r.ok) showDashboard();
+    else logout();
+  }).catch(logout);
+}
+</script>
+</body>
+</html>
