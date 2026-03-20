@@ -391,6 +391,23 @@ window.openCommunityModal = function(existing) {
           </ul>
           <button class="add-care-btn" onclick="document.getElementById('m-care').insertAdjacentHTML('beforeend','<li class=\\'care-item\\'><input placeholder=\\'Care type\\' class=\\'care-name\\'/><input type=\\'number\\' placeholder=\\'Starting at $\\' class=\\'care-price price-input\\'/><button onclick=\\'this.parentElement.remove()\\'>×</button></li>')">+ Add Care Type</button>
         </div>
+        <div class="form-group full" style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+          <h3 style="font-size:15px;color:var(--brand);margin-bottom:12px;">Community Knowledge Base</h3>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">This information is used by the chat widget to answer visitor questions.</p>
+        </div>
+        <div class="form-group full"><label>Community Description</label><textarea id="m-desc" rows="3" placeholder="Brief description of the community...">${c.community_description||c.communityDescription||''}</textarea></div>
+        <div class="form-group"><label>Amenities</label><textarea id="m-amenities" rows="3" placeholder="Comma-separated list...">${c.amenities||''}</textarea></div>
+        <div class="form-group"><label>Dining Info</label><textarea id="m-dining" rows="3" placeholder="Meal plans, dining options...">${c.dining_info||c.diningInfo||''}</textarea></div>
+        <div class="form-group"><label>Activities</label><textarea id="m-activities" rows="3" placeholder="Activities and programs...">${c.activities||''}</textarea></div>
+        <div class="form-group"><label>Pet Policy</label><input id="m-pets" value="${c.pet_policy||c.petPolicy||''}"/></div>
+        <div class="form-group"><label>Visiting Hours</label><input id="m-visiting" value="${c.visiting_hours||c.visitingHours||''}"/></div>
+        <div class="form-group"><label>Transportation</label><input id="m-transport" value="${c.transportation||''}"/></div>
+        <div class="form-group"><label>Staff Info</label><textarea id="m-staff" rows="2" placeholder="Staffing details...">${c.staff_info||c.staffInfo||''}</textarea></div>
+        <div class="form-group full"><label>Move-in Info</label><textarea id="m-movein" rows="2" placeholder="Move-in process, availability...">${c.move_in_info||c.moveInInfo||''}</textarea></div>
+        <div class="form-group full">
+          <label>FAQ (one per line: Question | Answer)</label>
+          <textarea id="m-faq" rows="5" placeholder="What is included? | Monthly rent includes...">${(c.faq||[]).map(f => f.q + ' | ' + f.a).join('\n')}</textarea>
+        </div>
       </div>
       <div class="actions">
         <button class="btn btn-primary" id="m-save">${c.id ? 'Save Changes' : 'Create Community'}</button>
@@ -432,6 +449,19 @@ window.openCommunityModal = function(existing) {
       logoUrl: overlay.querySelector('#m-logo').value,
       advisorName: overlay.querySelector('#m-advisor').value,
       careTypes: careTypes,
+      communityDescription: overlay.querySelector('#m-desc').value,
+      amenities: overlay.querySelector('#m-amenities').value,
+      diningInfo: overlay.querySelector('#m-dining').value,
+      activities: overlay.querySelector('#m-activities').value,
+      petPolicy: overlay.querySelector('#m-pets').value,
+      visitingHours: overlay.querySelector('#m-visiting').value,
+      transportation: overlay.querySelector('#m-transport').value,
+      staffInfo: overlay.querySelector('#m-staff').value,
+      moveInInfo: overlay.querySelector('#m-movein').value,
+      faq: overlay.querySelector('#m-faq').value.split('\n').filter(l => l.includes('|')).map(l => {
+        const [q, ...a] = l.split('|');
+        return { q: q.trim(), a: a.join('|').trim() };
+      }),
     };
 
     if (c.id) {
@@ -452,9 +482,9 @@ window.editCommunity = function(id) {
 window.showEmbed = function(id) {
   const c = communities.find(x => x.id === id);
   if (!c) return;
-  const code = `<script src="https://yourdomain.com/widget/gl-loader.js"
+  const code = `<script src="https://gl-chat-platform.vercel.app/widget/gl-loader.js"
   data-community-id="${c.id}"
-  data-api="https://yourdomain.com"><\/script>`;
+  data-api="https://gl-chat-platform.vercel.app"><\/script>`;
 
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';

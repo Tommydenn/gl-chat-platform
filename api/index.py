@@ -18,7 +18,7 @@ from http.server import BaseHTTPRequestHandler
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "gl-chat-secret-change-in-production")
 ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
-ADMIN_PASS = os.environ.get("ADMIN_PASS", "greatlakes2026")
+ADMIN_PASS = os.environ.get("ADMIN_PASS", "glmc2024")
 
 # ── In-memory data store (resets on cold start — use Vercel KV/Postgres for production) ──
 COMMUNITIES = {}
@@ -51,6 +51,21 @@ def _seed():
             {"name": "Independent Living", "startingAt": 3130},
             {"name": "Assisted Living", "startingAt": 5020},
             {"name": "Memory Care", "startingAt": 5385}
+        ],
+        "community_description": "A faith-based senior community for adults 62 and over in West St. Paul, Minnesota. The Glenn offers Independent Living, Assisted Living, and Memory Care with a warm, welcoming environment.",
+        "amenities": "Restaurant-style dining, Fitness center, Chapel, Library, Beauty salon, Walking paths, Community garden, Activity rooms, Underground parking, Emergency call system",
+        "dining_info": "Three chef-prepared meals daily included. Restaurant-style dining room with seasonal menus. Special dietary accommodations available.",
+        "activities": "Daily social activities, Exercise classes, Arts and crafts, Book clubs, Movie nights, Live entertainment, Community outings, Spiritual services, Holiday celebrations",
+        "pet_policy": "Small pets welcome with approval. Pet deposit may apply.",
+        "visiting_hours": "Visitors welcome anytime during regular hours. 24/7 access for family members of Memory Care residents with prior arrangement.",
+        "transportation": "Scheduled transportation for medical appointments and community outings.",
+        "staff_info": "24/7 trained staff on-site. Licensed nurses available. Personalized care plans for each resident.",
+        "move_in_info": "Contact us to schedule a tour and learn about current availability. We offer flexible move-in timelines and can help with the transition process.",
+        "faq": [
+            {"q": "What is included in the monthly cost?", "a": "Monthly rent includes your apartment, three meals daily, utilities, basic cable, weekly housekeeping, scheduled transportation, and access to all community amenities and activities."},
+            {"q": "Can I bring my own furniture?", "a": "Yes! We encourage residents to bring personal furnishings to make their apartment feel like home."},
+            {"q": "Is there a waiting list?", "a": "Availability varies. Contact us to check current openings and join our interest list."},
+            {"q": "What level of care is available?", "a": "We offer Independent Living, Assisted Living, and Memory Care, with personalized care plans that can adjust as needs change."}
         ],
         "created_at": datetime.utcnow().isoformat(),
         "updated_at": datetime.utcnow().isoformat(),
@@ -110,6 +125,16 @@ def community_to_widget_config(c):
         "tourEnabled": c.get("tour_enabled", True),
         "smsEnabled": c.get("sms_enabled", True),
         "greeting": c.get("greeting", "Hi there! I'm here to help you explore"),
+        "communityDescription": c.get("community_description", ""),
+        "amenities": c.get("amenities", ""),
+        "diningInfo": c.get("dining_info", ""),
+        "activities": c.get("activities", ""),
+        "petPolicy": c.get("pet_policy", ""),
+        "visitingHours": c.get("visiting_hours", ""),
+        "transportation": c.get("transportation", ""),
+        "staffInfo": c.get("staff_info", ""),
+        "moveInInfo": c.get("move_in_info", ""),
+        "faq": c.get("faq", []),
     }
 
 
@@ -230,12 +255,28 @@ class handler(BaseHTTPRequestHandler):
         if path == "/api/admin/communities":
             if not self._auth():
                 return self._json({"error": "Unauthorized"}, 401)
-            cid = data.get("slug") or data.get("name", "").lower().replace(" ", "-").replace(",", "")
-            data["id"] = cid
-            data["slug"] = cid
-            data["created_at"] = datetime.utcnow().isoformat()
-            data["updated_at"] = datetime.utcnow().isoformat()
-            COMMUNITIES[cid] = data
+            # Map camelCase from admin dashboard to snake_case
+            field_map = {
+                "brandColor": "brand_color", "accentColor": "accent_color",
+                "floorPlansUrl": "floor_plans_url", "galleryUrl": "gallery_url",
+                "logoUrl": "logo_url", "advisorName": "advisor_name",
+                "careTypes": "care_types",
+                "communityDescription": "community_description",
+                "amenities": "amenities", "diningInfo": "dining_info",
+                "activities": "activities", "petPolicy": "pet_policy",
+                "visitingHours": "visiting_hours", "transportation": "transportation",
+                "staffInfo": "staff_info", "moveInInfo": "move_in_info",
+                "faq": "faq",
+            }
+            mapped = {}
+            for k, v in data.items():
+                mapped[field_map.get(k, k)] = v
+            cid = mapped.get("slug") or mapped.get("name", "").lower().replace(" ", "-").replace(",", "")
+            mapped["id"] = cid
+            mapped["slug"] = cid
+            mapped["created_at"] = datetime.utcnow().isoformat()
+            mapped["updated_at"] = datetime.utcnow().isoformat()
+            COMMUNITIES[cid] = mapped
             return self._json({"id": cid, "slug": cid}, 201)
 
         self._json({"error": "Not found"}, 404)
@@ -249,7 +290,23 @@ class handler(BaseHTTPRequestHandler):
         if "/api/admin/communities/" in path:
             cid = path.split("/")[-1]
             if cid in COMMUNITIES:
-                COMMUNITIES[cid].update(data)
+                # Map camelCase from admin dashboard to snake_case
+                field_map = {
+                    "brandColor": "brand_color", "accentColor": "accent_color",
+                    "floorPlansUrl": "floor_plans_url", "galleryUrl": "gallery_url",
+                    "logoUrl": "logo_url", "advisorName": "advisor_name",
+                    "careTypes": "care_types",
+                    "communityDescription": "community_description",
+                    "amenities": "amenities", "diningInfo": "dining_info",
+                    "activities": "activities", "petPolicy": "pet_policy",
+                    "visitingHours": "visiting_hours", "transportation": "transportation",
+                    "staffInfo": "staff_info", "moveInInfo": "move_in_info",
+                    "faq": "faq",
+                }
+                mapped = {}
+                for k, v in data.items():
+                    mapped[field_map.get(k, k)] = v
+                COMMUNITIES[cid].update(mapped)
                 COMMUNITIES[cid]["updated_at"] = datetime.utcnow().isoformat()
             return self._json({"status": "ok"})
 
