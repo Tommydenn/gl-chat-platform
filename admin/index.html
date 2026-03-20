@@ -953,7 +953,7 @@
                         <div class="stat-card gradient">
                             <div class="stat-label">Total Leads</div>
                             <div class="stat-value" id="totalLeads">0</div>
-                            <div class="stat-change">↑ 12% from last month</div>
+                            <div class="stat-change">From all communities</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-label">Communities</div>
@@ -961,9 +961,9 @@
                             <div class="stat-change">Active managed communities</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">Conversion Rate</div>
-                            <div class="stat-value">14.2%</div>
-                            <div class="stat-change">↓ 2.1% from last month</div>
+                            <div class="stat-label">New This Week</div>
+                            <div class="stat-value" id="weeklyLeadsOverview">0</div>
+                            <div class="stat-change">Leads in last 7 days</div>
                         </div>
                     </div>
 
@@ -1266,12 +1266,27 @@
 
         // ============ INITIALIZATION ============
         function init() {
-            // Check for existing session
+            // Check for existing session — validate token against API
             const token = localStorage.getItem('adminToken');
             if (token) {
-                currentUser = { username: VALID_USERNAME };
-                showApp();
-                loadData();
+                // Validate token by trying to load data
+                fetch(API + '/api/admin/communities', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                .then(function(r) {
+                    if (r.ok) {
+                        currentUser = { username: 'admin' };
+                        showApp();
+                        loadData();
+                    } else {
+                        // Token expired or invalid — force re-login
+                        localStorage.removeItem('adminToken');
+                        showLogin();
+                    }
+                })
+                .catch(function() {
+                    showLogin();
+                });
             } else {
                 showLogin();
             }
@@ -1288,18 +1303,29 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            if (username === VALID_USERNAME && password === VALID_PASSWORD) {
-                // Generate mock token
-                const token = 'glm_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('adminToken', token);
-                currentUser = { username };
-                loginError.style.display = 'none';
-                showApp();
-                loadData();
-            } else {
-                loginError.textContent = 'Invalid username or password';
+            // Call real API for JWT token
+            fetch(API + '/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: username, password: password })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.token) {
+                    localStorage.setItem('adminToken', data.token);
+                    currentUser = { username: data.user || username };
+                    loginError.style.display = 'none';
+                    showApp();
+                    loadData();
+                } else {
+                    loginError.textContent = data.error || 'Invalid username or password';
+                    loginError.style.display = 'block';
+                }
+            })
+            .catch(function(err) {
+                loginError.textContent = 'Connection error. Please try again.';
                 loginError.style.display = 'block';
-            }
+            });
         }
 
         function handleLogout() {
@@ -1375,23 +1401,27 @@
             document.getElementById('totalLeads').textContent = leads.length;
             document.getElementById('totalCommunities').textContent = communities.length;
 
-            // Analytics page – real data only
-            document.getElementById('analyticsLeads').textContent = leads.length;
-            document.getElementById('analyticsCommunities').textContent = communities.length;
-
             // Leads in last 7 days
             var now = Date.now();
             var weekAgo = now - 7 * 24 * 60 * 60 * 1000;
             var weeklyLeads = leads.filter(function(l) {
-                var ts = l.createdAt ? new Date(l.createdAt).getTime() : 0;
+                var ts = (l.createdAt || l.created_at) ? new Date(l.createdAt || l.created_at).getTime() : 0;
                 return ts >= weekAgo;
             });
-            document.getElementById('analyticsWeekly').textContent = weeklyLeads.length;
 
             // New leads (status is 'new' or undefined)
             var newLeads = leads.filter(function(l) {
                 return !l.status || l.status === 'new';
             });
+
+            // Overview page
+            var weeklyOverview = document.getElementById('weeklyLeadsOverview');
+            if (weeklyOverview) weeklyOverview.textContent = weeklyLeads.length;
+
+            // Analytics page – real data only
+            document.getElementById('analyticsLeads').textContent = leads.length;
+            document.getElementById('analyticsCommunities').textContent = communities.length;
+            document.getElementById('analyticsWeekly').textContent = weeklyLeads.length;
             document.getElementById('analyticsNew').textContent = newLeads.length;
 
             renderRecentLeads();
@@ -1412,7 +1442,7 @@
                     <td>${escapeHtml(lead.phone || '-')}</td>
                     <td>${escapeHtml(lead.community || '-')}</td>
                     <td>${getStatusBadge(lead.status)}</td>
-                    <td>${formatDate(lead.createdAt)}</td>
+                    <td>${formatDate(lead.createdAt || lead.created_at)}</td>
                 </tr>
             `).join('');
         }
@@ -1431,7 +1461,7 @@
                     <td>${escapeHtml(lead.email)}</td>
                     <td>${escapeHtml(lead.community || '-')}</td>
                     <td>${getStatusBadge(lead.status)}</td>
-                    <td>${formatDate(lead.createdAt)}</td>
+                    <td>${formatDate(lead.createdAt || lead.created_at)}</td>
                 </tr>
             `).join('');
         }
@@ -1466,7 +1496,7 @@
                     <td>${escapeHtml(lead.phone || '-')}</td>
                     <td>${escapeHtml(lead.community || '-')}</td>
                     <td>${getStatusBadge(lead.status)}</td>
-                    <td>${formatDate(lead.createdAt)}</td>
+                    <td>${formatDate(lead.createdAt || lead.created_at)}</td>
                 </tr>
             `).join('');
         });
@@ -1479,7 +1509,7 @@
 
             let csv = 'Name,Email,Phone,Community,Status,Date\n';
             csv += leads.map(l =>
-                `"${escapeHtml(l.name)}","${escapeHtml(l.email)}","${escapeHtml(l.phone || '')}","${escapeHtml(l.community || '')}","${l.status || 'New'}","${formatDate(l.createdAt)}"`
+                `"${escapeHtml(l.name)}","${escapeHtml(l.email)}","${escapeHtml(l.phone || '')}","${escapeHtml(l.community || '')}","${l.status || 'New'}","${formatDate(l.createdAt || l.created_at)}"`
             ).join('\n');
 
             const blob = new Blob([csv], { type: 'text/csv' });
