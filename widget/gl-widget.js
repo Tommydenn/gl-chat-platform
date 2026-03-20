@@ -706,7 +706,7 @@
       // Greeting
       const name = this.config.communityName || 'our community';
       const greeting = this.config.greeting ||
-        ("Hi! I'm Sarah, your advisor here at " + name + ". Are you exploring senior living options for yourself or a loved one?");
+        ("Hi there! Welcome to " + name + ". Are you exploring senior living options for yourself or a loved one?");
       this.addMessage({ role: 'ai', content: greeting });
 
       // Quick replies
@@ -880,134 +880,8 @@
     }
 
     _handleActions(actions) {
-      if (actions.includes('schedule_tour')) {
-        this._showTourButton();
-      }
-      if (actions.includes('provide_contact') && !this.contactFormShown) {
-        this._showContactForm();
-      }
-      if (actions.includes('pricing_info')) {
-        this._showPricing();
-      }
-    }
-
-    _showPricing() {
-      if (!this.config.careTypes || this.config.careTypes.length === 0) return;
-
-      let rows = '';
-      this.config.careTypes.forEach(ct => {
-        const price = ct.startingAt
-          ? '$' + parseInt(ct.startingAt).toLocaleString() + '/mo'
-          : 'Contact us';
-        rows += '<div class="gl-pricing-item"><span class="gl-pricing-name">' + this._escHtml(ct.name) +
-          '</span><span class="gl-pricing-price">From ' + price + '</span></div>';
-      });
-
-      this.addMessage({
-        role: 'ai',
-        html: '<div class="gl-pricing-card"><div class="gl-pricing-card-title">Care Options & Starting Prices</div>' + rows + '</div>'
-      });
-    }
-
-    _showTourButton() {
-      this.addMessage({
-        role: 'ai',
-        html: '<button class="gl-tour-btn">' + calendarIcon + ' Schedule a Tour</button>'
-      });
-
-      setTimeout(() => {
-        const btns = this.shadowRoot.querySelectorAll('.gl-tour-btn');
-        const btn = btns[btns.length - 1];
-        if (btn) {
-          btn.addEventListener('click', () => {
-            if (!this.contactFormShown) {
-              this.addMessage({ role: 'user', content: "I'd like to schedule a tour" });
-              this._showContactForm();
-            }
-          });
-        }
-      }, 0);
-    }
-
-    _showContactForm() {
-      this.contactFormShown = true;
-
-      const careOptions = (this.config.careTypes && this.config.careTypes.length > 0)
-        ? '<div class="gl-form-group"><label class="gl-form-label">Care Type</label><select class="gl-form-select contact-care-type"><option value="">Select care type...</option>' +
-          this.config.careTypes.map(ct => '<option value="' + this._escHtml(ct.name) + '">' + this._escHtml(ct.name) + '</option>').join('') +
-          '</select></div>'
-        : '';
-
-      const formHtml = '<div class="gl-contact-form">' +
-        '<div class="gl-contact-form-title">Let us follow up with you</div>' +
-        '<div class="gl-form-group"><label class="gl-form-label">Name</label><input type="text" class="gl-form-input contact-name" placeholder="Your full name" /></div>' +
-        '<div class="gl-form-group"><label class="gl-form-label">Email</label><input type="email" class="gl-form-input contact-email" placeholder="you@email.com" /></div>' +
-        '<div class="gl-form-group"><label class="gl-form-label">Phone</label><input type="tel" class="gl-form-input contact-phone" placeholder="(555) 123-4567" /></div>' +
-        careOptions +
-        '<button class="gl-form-submit contact-submit">Get in Touch</button></div>';
-
-      this.addMessage({ role: 'ai', html: formHtml });
-
-      setTimeout(() => {
-        const container = this.shadowRoot.querySelector('.gl-messages');
-        const lastMsg = container.lastElementChild;
-        if (!lastMsg) return;
-        const btn = lastMsg.querySelector('.contact-submit');
-        if (btn) {
-          btn.addEventListener('click', () => {
-            const name = (lastMsg.querySelector('.contact-name') || {}).value || '';
-            const email = (lastMsg.querySelector('.contact-email') || {}).value || '';
-            const phone = (lastMsg.querySelector('.contact-phone') || {}).value || '';
-            const careType = (lastMsg.querySelector('.contact-care-type') || {}).value || '';
-
-            if (!name.trim() || !email.trim()) {
-              // Minimal inline validation
-              if (!name.trim()) lastMsg.querySelector('.contact-name').style.borderColor = '#ef4444';
-              if (!email.trim()) lastMsg.querySelector('.contact-email').style.borderColor = '#ef4444';
-              return;
-            }
-
-            this._submitLead({ name: name.trim(), email: email.trim(), phone: phone.trim(), care_type: careType });
-          });
-        }
-      }, 0);
-    }
-
-    _submitLead(info) {
-      const endpoint = this.config.apiEndpoint + '/api/leads';
-      const body = JSON.stringify({
-        community: this.config.communityId,
-        community_name: this.config.communityName,
-        name: info.name,
-        email: info.email,
-        phone: info.phone,
-        care_type: info.care_type,
-        source: 'chat_widget'
-      });
-
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', endpoint);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          this.addMessage({
-            role: 'ai',
-            html: '<div class="gl-confirmation">' + checkIcon + '<span>Thank you, ' + this._escHtml(info.name.split(' ')[0]) + '! A member of our team will be in touch soon.</span></div>'
-          });
-          this.leadData = { name: info.name, email: info.email, phone: info.phone, care_type: info.care_type };
-        } else {
-          this.addMessage({ role: 'ai', content: "Sorry, there was an error. Please try again." });
-          this.contactFormShown = false;
-        }
-      };
-
-      xhr.onerror = () => {
-        this.addMessage({ role: 'ai', content: "Connection lost. Please try again." });
-        this.contactFormShown = false;
-      };
-
-      xhr.send(body);
+      // Actions are now handled naturally through the AI conversation
+      // No forms or popups — the AI asks for contact info conversationally
     }
 
     _renderChips() {

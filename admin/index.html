@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GLM Admin Dashboard - Chat Platform</title>
+    <title>GLM Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&family=Source+Serif+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         * {
@@ -14,9 +14,14 @@
 
         body {
             font-family: 'Source Serif Pro', serif;
-            background-color: #f8f9fa;
-            color: #333;
+            background-color: #f5f6f8;
+            color: #2c3e50;
             line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 600;
         }
 
         /* ============ LOGIN PAGE ============ */
@@ -35,10 +40,7 @@
             position: absolute;
             width: 400px;
             height: 400px;
-            background-image:
-                radial-gradient(circle at 30% 50%, rgba(189, 204, 214, 0.2) 0%, transparent 50%),
-                radial-gradient(circle at 70% 70%, rgba(189, 204, 214, 0.2) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(189, 204, 214, 0.2) 0%, transparent 50%);
+            background-image: radial-gradient(circle at 30% 50%, rgba(189, 204, 214, 0.15) 0%, transparent 50%);
             border-radius: 50%;
             animation: float 6s ease-in-out infinite;
             top: -100px;
@@ -50,9 +52,7 @@
             position: absolute;
             width: 400px;
             height: 400px;
-            background-image:
-                radial-gradient(circle at 30% 50%, rgba(189, 204, 214, 0.2) 0%, transparent 50%),
-                radial-gradient(circle at 70% 70%, rgba(189, 204, 214, 0.2) 0%, transparent 50%);
+            background-image: radial-gradient(circle at 30% 50%, rgba(189, 204, 214, 0.15) 0%, transparent 50%);
             border-radius: 50%;
             animation: float 8s ease-in-out infinite reverse;
             bottom: -150px;
@@ -68,7 +68,7 @@
             background: white;
             padding: 60px 40px;
             border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
             width: 100%;
             max-width: 420px;
             position: relative;
@@ -81,15 +81,13 @@
         }
 
         .login-logo {
-            font-family: 'Roboto', sans-serif;
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 700;
             color: #003c4c;
             margin-bottom: 8px;
         }
 
         .login-subtitle {
-            font-family: 'Roboto', sans-serif;
             font-size: 14px;
             color: #666;
             font-weight: 400;
@@ -101,21 +99,20 @@
 
         .form-group label {
             display: block;
-            font-family: 'Roboto', sans-serif;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 500;
+            color: #2c3e50;
             margin-bottom: 8px;
-            color: #003c4c;
-            font-size: 14px;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-family: 'Source Serif Pro', serif;
+            padding: 12px;
+            border: 1px solid #e0e4e8;
+            border-radius: 6px;
             font-size: 14px;
-            transition: border-color 0.3s;
+            font-family: 'Source Serif Pro', serif;
+            transition: border-color 0.2s;
         }
 
         .form-group input:focus {
@@ -124,140 +121,91 @@
             box-shadow: 0 0 0 3px rgba(0, 112, 152, 0.1);
         }
 
-        .login-button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #003c4c 0%, #007098 100%);
-            color: white;
+        .btn {
+            padding: 12px 24px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             font-family: 'Roboto', sans-serif;
-            font-weight: 600;
             font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-top: 10px;
+            transition: all 0.2s;
         }
 
-        .login-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 60, 76, 0.3);
+        .btn-primary {
+            background: #003c4c;
+            color: white;
+            width: 100%;
         }
 
-        .login-button:active {
-            transform: translateY(0);
+        .btn-primary:hover {
+            background: #002a37;
         }
 
-        .login-error {
-            color: #a61c3b;
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
             font-size: 13px;
-            margin-top: 10px;
-            text-align: center;
-            display: none;
         }
 
         /* ============ MAIN LAYOUT ============ */
-        .app-container {
-            display: none;
+        .admin-layout {
+            display: flex;
             min-height: 100vh;
         }
 
-        .app-container.logged-in {
-            display: flex;
-        }
-
-        /* ============ SIDEBAR ============ */
         .sidebar {
             width: 260px;
             background: #003c4c;
             color: white;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
-            position: fixed;
-            height: 100vh;
-            left: 0;
-            top: 0;
-        }
-
-        .sidebar-logo {
-            padding: 24px 20px;
-            border-bottom: 1px solid rgba(189, 204, 214, 0.2);
-            font-family: 'Roboto', sans-serif;
-            font-weight: 700;
-            font-size: 16px;
-            letter-spacing: 0.5px;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 24px 12px;
+            padding: 30px 0;
             overflow-y: auto;
         }
 
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            font-family: 'Roboto', sans-serif;
-            font-weight: 500;
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.8);
+        .sidebar-logo {
+            padding: 0 20px 30px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #bdccd6;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin: 0;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            padding: 14px 20px;
+            color: #bdccd6;
             text-decoration: none;
-        }
-
-        .nav-item:hover {
-            background-color: rgba(189, 204, 214, 0.1);
-        }
-
-        .nav-item.active {
-            background-color: #007098;
-            color: white;
-        }
-
-        .nav-icon {
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .sidebar-logout {
-            padding: 20px 12px;
-            border-top: 1px solid rgba(189, 204, 214, 0.2);
-        }
-
-        .logout-button {
-            width: 100%;
-            padding: 12px 16px;
-            background-color: rgba(189, 204, 214, 0.15);
-            color: white;
-            border: 1px solid rgba(189, 204, 214, 0.3);
-            border-radius: 8px;
-            font-family: 'Roboto', sans-serif;
-            font-weight: 600;
-            font-size: 13px;
+            font-size: 14px;
+            transition: all 0.2s;
             cursor: pointer;
-            transition: background-color 0.2s;
         }
 
-        .logout-button:hover {
-            background-color: rgba(189, 204, 214, 0.25);
+        .sidebar-nav a:hover {
+            background: rgba(189, 204, 214, 0.1);
+            color: white;
         }
 
-        /* ============ MAIN CONTENT ============ */
+        .sidebar-nav a.active {
+            background: #007098;
+            color: white;
+            border-left: 4px solid #a61c3b;
+            padding-left: 16px;
+        }
+
         .main-content {
             flex: 1;
-            margin-left: 260px;
-            background-color: #f8f9fa;
+            overflow-y: auto;
+            background: #f5f6f8;
         }
 
         .page {
@@ -270,119 +218,70 @@
 
         .page-header {
             background: white;
-            padding: 32px 40px;
-            border-bottom: 1px solid #e5e7eb;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .page-header::before {
-            content: '';
-            position: absolute;
-            right: -100px;
-            top: -50px;
-            width: 300px;
-            height: 300px;
-            background-image:
-                radial-gradient(circle at 20% 30%, rgba(189, 204, 214, 0.2) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(189, 204, 214, 0.15) 0%, transparent 50%);
-            border-radius: 50%;
-            pointer-events: none;
+            padding: 30px;
+            border-bottom: 1px solid #e0e4e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .page-title {
-            font-family: 'Roboto', sans-serif;
-            font-size: 32px;
-            font-weight: 700;
+            font-size: 28px;
             color: #003c4c;
-            margin-bottom: 8px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .page-subtitle {
-            font-family: 'Source Serif Pro', serif;
-            font-size: 15px;
-            color: #666;
-            position: relative;
-            z-index: 1;
         }
 
         .page-content {
-            padding: 32px 40px;
+            padding: 30px;
         }
 
-        /* ============ OVERVIEW PAGE ============ */
+        /* ============ CARDS & STATS ============ */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 24px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
         .stat-card {
             background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: transform 0.2s, box-shadow 0.2s;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #007098;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-        }
-
-        .stat-card.gradient {
-            background: linear-gradient(135deg, #003c4c 0%, #007098 100%);
-            color: white;
-        }
-
-        .stat-label {
-            font-family: 'Roboto', sans-serif;
+        .stat-card-label {
             font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            opacity: 0.8;
+            color: #666;
+            font-weight: 500;
             margin-bottom: 8px;
         }
 
-        .stat-value {
-            font-family: 'Roboto', sans-serif;
-            font-size: 36px;
+        .stat-card-value {
+            font-size: 32px;
             font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .stat-change {
-            font-family: 'Source Serif Pro', serif;
-            font-size: 13px;
-            opacity: 0.8;
+            color: #003c4c;
         }
 
         /* ============ TABLES ============ */
         .table-container {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
             overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .table-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #e5e7eb;
+            padding: 20px;
+            border-bottom: 1px solid #e0e4e8;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
         }
 
         .table-title {
-            font-family: 'Roboto', sans-serif;
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 16px;
+            font-weight: 600;
             color: #003c4c;
         }
 
@@ -391,631 +290,658 @@
             border-collapse: collapse;
         }
 
-        thead {
-            background-color: #f8f9fa;
-        }
-
-        th {
+        thead th {
+            background: #f5f6f8;
+            padding: 14px 20px;
             text-align: left;
-            padding: 14px 24px;
-            font-family: 'Roboto', sans-serif;
+            font-size: 12px;
             font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #666;
-            border-bottom: 1px solid #e5e7eb;
+            color: #2c3e50;
+            border-bottom: 1px solid #e0e4e8;
         }
 
-        td {
-            padding: 16px 24px;
-            border-bottom: 1px solid #f0f0f0;
-            font-family: 'Source Serif Pro', serif;
+        tbody td {
+            padding: 14px 20px;
+            border-bottom: 1px solid #f0f1f3;
             font-size: 14px;
         }
 
         tbody tr {
-            transition: background-color 0.2s;
-        }
-
-        tbody tr:nth-child(even) {
-            background-color: rgba(189, 204, 214, 0.08);
+            transition: background 0.2s;
         }
 
         tbody tr:hover {
-            background-color: rgba(189, 204, 214, 0.15);
+            background: #f9fafb;
         }
 
-        /* ============ BADGES ============ */
-        .badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-family: 'Roboto', sans-serif;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .badge-new {
-            background-color: rgba(0, 112, 152, 0.2);
-            color: #007098;
-        }
-
-        .badge-contacted {
-            background-color: rgba(0, 112, 152, 0.15);
-            color: #005f7f;
-        }
-
-        .badge-scheduled {
-            background-color: rgba(166, 28, 59, 0.2);
-            color: #a61c3b;
-        }
-
-        .badge-closed {
-            background-color: rgba(150, 150, 150, 0.2);
-            color: #666;
-        }
-
-        /* ============ BUTTONS ============ */
-        .button {
-            font-family: 'Roboto', sans-serif;
-            font-weight: 600;
-            font-size: 14px;
-            padding: 10px 20px;
-            border-radius: 8px;
+        tbody tr.clickable {
             cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .button-primary {
-            background: linear-gradient(135deg, #003c4c 0%, #007098 100%);
-            color: white;
-        }
-
-        .button-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 60, 76, 0.25);
-        }
-
-        .button-secondary {
-            background-color: #f0f0f0;
-            color: #333;
-            border: 1px solid #e0e0e0;
-        }
-
-        .button-secondary:hover {
-            background-color: #e8e8e8;
-        }
-
-        .button-small {
-            padding: 8px 16px;
-            font-size: 13px;
         }
 
         /* ============ FORMS ============ */
-        .form-section {
+        .form-container {
             background: white;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
         }
 
-        .form-title {
-            font-family: 'Roboto', sans-serif;
-            font-size: 18px;
-            font-weight: 700;
+        .form-section {
+            margin-bottom: 40px;
+        }
+
+        .form-section-title {
+            font-size: 16px;
+            font-weight: 600;
             color: #003c4c;
             margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e0e4e8;
         }
 
         .form-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
             margin-bottom: 20px;
         }
 
-        .form-row.full {
-            grid-template-columns: 1fr;
-        }
-
-        .form-group {
+        .form-field {
             display: flex;
             flex-direction: column;
         }
 
-        .form-group label {
-            font-family: 'Roboto', sans-serif;
+        .form-field label {
+            font-size: 13px;
             font-weight: 600;
+            color: #2c3e50;
             margin-bottom: 8px;
-            color: #003c4c;
-            font-size: 14px;
         }
 
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+        .form-field input,
+        .form-field textarea,
+        .form-field select {
+            padding: 10px 12px;
+            border: 1px solid #e0e4e8;
+            border-radius: 6px;
             font-family: 'Source Serif Pro', serif;
             font-size: 14px;
             transition: border-color 0.2s;
         }
 
-        .form-group textarea {
+        .form-field input:focus,
+        .form-field textarea:focus,
+        .form-field select:focus {
+            outline: none;
+            border-color: #007098;
+            box-shadow: 0 0 0 3px rgba(0, 112, 152, 0.1);
+        }
+
+        .form-field textarea {
             resize: vertical;
             min-height: 100px;
-            font-family: 'Source Serif Pro', serif;
         }
 
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #007098;
-            box-shadow: 0 0 0 3px rgba(0, 112, 152, 0.1);
+        .form-field.full {
+            grid-column: 1 / -1;
         }
 
-        .form-actions {
+        /* ============ COLOR PICKER ============ */
+        .color-picker-wrapper {
             display: flex;
             gap: 12px;
-            margin-top: 20px;
+            align-items: center;
         }
 
-        /* ============ LEADS PAGE ============ */
-        .leads-filters {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .filter-select {
-            padding: 10px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-family: 'Source Serif Pro', serif;
-            font-size: 14px;
-            background: white;
+        .color-picker-wrapper input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border: 1px solid #e0e4e8;
+            border-radius: 6px;
             cursor: pointer;
-            transition: border-color 0.2s;
         }
 
-        .filter-select:focus {
+        .color-value {
+            font-size: 13px;
+            color: #666;
+            font-family: monospace;
+        }
+
+        /* ============ PILL INPUT ============ */
+        .pill-input-container {
+            border: 1px solid #e0e4e8;
+            border-radius: 6px;
+            padding: 8px;
+            background: white;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .pill {
+            background: #007098;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .pill-remove {
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.8;
+        }
+
+        .pill-remove:hover {
+            opacity: 1;
+        }
+
+        .pill-input-container input {
+            border: none;
             outline: none;
-            border-color: #007098;
-            box-shadow: 0 0 0 3px rgba(0, 112, 152, 0.1);
+            font-size: 14px;
+            flex: 1;
+            min-width: 120px;
+            font-family: 'Source Serif Pro', serif;
         }
 
-        /* ============ MODAL ============ */
-        .modal {
+        /* ============ CARE TYPES TABLE ============ */
+        .care-types-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .care-types-table thead th {
+            background: #f5f6f8;
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 1px solid #e0e4e8;
+        }
+
+        .care-types-table tbody td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f1f3;
+        }
+
+        .care-types-table input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #e0e4e8;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .btn-remove-row {
+            background: #a61c3b;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-remove-row:hover {
+            background: #7d1630;
+        }
+
+        /* ============ FAQ TABLE ============ */
+        .faq-item {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border-left: 4px solid #007098;
+        }
+
+        .faq-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .faq-item input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #e0e4e8;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .faq-item textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #e0e4e8;
+            border-radius: 4px;
+            font-size: 13px;
+            min-height: 80px;
+            font-family: 'Source Serif Pro', serif;
+        }
+
+        /* ============ BUTTONS ============ */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .btn-secondary {
+            background: #bdccd6;
+            color: #003c4c;
+        }
+
+        .btn-secondary:hover {
+            background: #a8b8c1;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #a61c3b;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #7d1630;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        /* ============ COMMUNITIES GRID ============ */
+        .communities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .community-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0e4e8;
+        }
+
+        .community-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .community-card-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #003c4c;
+            margin-bottom: 8px;
+        }
+
+        .community-card-detail {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        /* ============ LEAD DETAIL PANEL ============ */
+        .lead-detail-panel {
+            position: fixed;
+            right: -600px;
+            top: 0;
+            width: 600px;
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+            overflow-y: auto;
+            transition: right 0.3s;
+            z-index: 1000;
+        }
+
+        .lead-detail-panel.open {
+            right: 0;
+        }
+
+        .panel-header {
+            background: #003c4c;
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+        }
+
+        .panel-close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .panel-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .panel-info {
+            padding: 20px;
+            border-bottom: 1px solid #e0e4e8;
+        }
+
+        .info-row {
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .status-dropdown {
+            padding: 8px 12px;
+            border: 1px solid #e0e4e8;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: 'Source Serif Pro', serif;
+        }
+
+        .panel-content {
+            padding: 20px;
+        }
+
+        .panel-section {
+            margin-bottom: 25px;
+        }
+
+        .panel-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #003c4c;
+            margin-bottom: 12px;
+        }
+
+        .notes-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e4e8;
+            border-radius: 6px;
+            font-family: 'Source Serif Pro', serif;
+            font-size: 13px;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* ============ CONVERSATION BUBBLES ============ */
+        .conversation {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message-bubble {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .message-bubble.user {
+            justify-content: flex-end;
+        }
+
+        .bubble-content {
+            max-width: 85%;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .bubble-content.assistant {
+            background: #f0f1f3;
+            color: #2c3e50;
+        }
+
+        .bubble-content.user {
+            background: #003c4c;
+            color: white;
+        }
+
+        .bubble-timestamp {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        /* ============ MODAL OVERLAY ============ */
+        .modal-overlay {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 999;
         }
 
-        .modal.active {
+        .modal-overlay.open {
+            display: block;
+        }
+
+        /* ============ FILTERS & ACTIONS ============ */
+        .filter-bar {
             display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            max-width: 600px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-header {
-            padding: 24px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-title {
-            font-family: 'Roboto', sans-serif;
-            font-size: 20px;
-            font-weight: 700;
-            color: #003c4c;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
-            transition: color 0.2s;
-        }
-
-        .modal-close:hover {
-            color: #003c4c;
-        }
-
-        .modal-body {
-            padding: 24px;
-        }
-
-        .modal-footer {
-            padding: 16px 24px;
-            border-top: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: flex-end;
             gap: 12px;
+            align-items: center;
+            margin-bottom: 20px;
         }
 
-        /* ============ COMMUNITIES PAGE ============ */
-        .communities-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 24px;
-            margin-bottom: 24px;
-        }
-
-        .community-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .community-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-        }
-
-        .community-name {
-            font-family: 'Roboto', sans-serif;
-            font-size: 18px;
-            font-weight: 700;
-            color: #003c4c;
-            margin-bottom: 8px;
-        }
-
-        .community-location {
+        .filter-select {
+            padding: 10px 12px;
+            border: 1px solid #e0e4e8;
+            border-radius: 6px;
+            font-size: 13px;
             font-family: 'Source Serif Pro', serif;
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 16px;
-        }
-
-        .community-color {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            border: 2px solid #e0e0e0;
-        }
-
-        .community-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: auto;
-        }
-
-        .community-actions .button {
-            flex: 1;
-            text-align: center;
-        }
-
-        /* ============ ANALYTICS PAGE ============ */
-        .analytics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
-        }
-
-        .analytics-card {
             background: white;
-            border-radius: 12px;
-            padding: 28px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
-        .analytics-card.highlight {
-            background: linear-gradient(135deg, #003c4c 0%, #007098 100%);
+        .btn-action {
+            padding: 10px 16px;
+            background: #007098;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-action:hover {
+            background: #005073;
+        }
+
+        .btn-add-new {
+            background: #28a745;
             color: white;
         }
 
-        .analytics-label {
-            font-family: 'Roboto', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            opacity: 0.8;
-            margin-bottom: 12px;
-        }
-
-        .analytics-value {
-            font-family: 'Roboto', sans-serif;
-            font-size: 44px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .analytics-detail {
-            font-family: 'Source Serif Pro', serif;
-            font-size: 13px;
-            opacity: 0.75;
-        }
-
-        .chart-placeholder {
-            background: white;
-            border-radius: 12px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            margin-bottom: 24px;
-        }
-
-        .chart-placeholder-content {
-            color: #999;
-            font-family: 'Source Serif Pro', serif;
+        .btn-add-new:hover {
+            background: #218838;
         }
 
         /* ============ RESPONSIVE ============ */
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
             .sidebar {
-                width: 70px;
-                padding: 0;
-            }
-
-            .sidebar-logo {
-                padding: 16px 8px;
-                font-size: 14px;
-                text-align: center;
-            }
-
-            .nav-item {
-                justify-content: center;
-                padding: 12px 8px;
-            }
-
-            .nav-item span {
-                display: none;
-            }
-
-            .main-content {
-                margin-left: 70px;
-            }
-
-            .page-content {
-                padding: 20px;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
+                width: 220px;
             }
 
             .form-row {
                 grid-template-columns: 1fr;
             }
 
+            .lead-detail-panel {
+                width: 100%;
+                right: -100%;
+            }
+
+            .communities-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .admin-layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 15px 0;
+                max-height: 60px;
+                overflow: hidden;
+            }
+
+            .sidebar-nav {
+                display: flex;
+                overflow-x: auto;
+            }
+
+            .sidebar-nav li {
+                flex-shrink: 0;
+            }
+
             .page-header {
-                padding: 20px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
             }
 
-            .page-title {
-                font-size: 24px;
-            }
-
-            .analytics-grid {
+            .stats-grid {
                 grid-template-columns: 1fr;
             }
 
             .communities-grid {
                 grid-template-columns: 1fr;
             }
-
-            .modal-content {
-                max-width: 95vw;
-            }
-
-            .leads-filters {
-                flex-direction: column;
-            }
-
-            .filter-select {
-                width: 100%;
-            }
-
-            .table-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .sidebar {
-                width: 60px;
-            }
-
-            .sidebar-logo {
-                font-size: 12px;
-                padding: 12px 6px;
-            }
-
-            .main-content {
-                margin-left: 60px;
-            }
-
-            .page-content {
-                padding: 16px;
-            }
-
-            .page-title {
-                font-size: 20px;
-            }
-
-            .stat-value {
-                font-size: 28px;
-            }
-
-            .analytics-value {
-                font-size: 32px;
-            }
-
-            table {
-                font-size: 12px;
-            }
-
-            th, td {
-                padding: 12px 16px;
-            }
         }
     </style>
 </head>
 <body>
     <!-- LOGIN PAGE -->
-    <div class="login-container" id="loginPage">
+    <div id="loginPage" class="login-container">
         <div class="login-box">
             <div class="login-header">
-                <div class="login-logo">Great Lakes Management</div>
-                <div class="login-subtitle">Chat Platform Admin</div>
+                <div class="login-logo">GLM Admin</div>
+                <div class="login-subtitle">Chat Platform Administration</div>
             </div>
-            <form id="loginForm">
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div id="loginError" class="error-message" style="display: none;"></div>
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" placeholder="Enter your username" required>
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="admin" required>
                 </div>
                 <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="Enter your password" required>
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="glmc2024" required>
                 </div>
-                <button type="submit" class="login-button">Sign In</button>
-                <div class="login-error" id="loginError"></div>
+                <button type="submit" class="btn btn-primary">Sign In</button>
             </form>
         </div>
     </div>
 
-    <!-- MAIN APP -->
-    <div class="app-container" id="appContainer">
+    <!-- MAIN ADMIN LAYOUT -->
+    <div id="adminLayout" class="admin-layout" style="display: none;">
         <!-- SIDEBAR -->
         <div class="sidebar">
-            <div class="sidebar-logo">GLM</div>
-            <div class="sidebar-nav">
-                <a href="#" class="nav-item active" data-page="overview">
-                    <div class="nav-icon">📊</div>
-                    <span>Overview</span>
-                </a>
-                <a href="#" class="nav-item" data-page="leads">
-                    <div class="nav-icon">👥</div>
-                    <span>Leads</span>
-                </a>
-                <a href="#" class="nav-item" data-page="communities">
-                    <div class="nav-icon">🏢</div>
-                    <span>Communities</span>
-                </a>
-                <a href="#" class="nav-item" data-page="analytics">
-                    <div class="nav-icon">📈</div>
-                    <span>Chat Analytics</span>
-                </a>
-            </div>
-            <div class="sidebar-logout">
-                <button class="logout-button" id="logoutButton">Logout</button>
-            </div>
+            <div class="sidebar-logo">GLM Admin</div>
+            <ul class="sidebar-nav">
+                <li><a class="nav-link active" data-page="overview">Overview</a></li>
+                <li><a class="nav-link" data-page="leads">Leads</a></li>
+                <li><a class="nav-link" data-page="communities">Communities</a></li>
+            </ul>
         </div>
 
         <!-- MAIN CONTENT -->
         <div class="main-content">
             <!-- OVERVIEW PAGE -->
-            <div class="page active" id="overviewPage">
+            <div id="overview" class="page active">
                 <div class="page-header">
-                    <h1 class="page-title">Dashboard</h1>
-                    <p class="page-subtitle">Welcome back! Here's your performance overview.</p>
+                    <div class="page-title">Overview</div>
                 </div>
                 <div class="page-content">
-                    <div class="stats-grid">
-                        <div class="stat-card gradient">
-                            <div class="stat-label">Total Leads</div>
-                            <div class="stat-value" id="totalLeads">0</div>
-                            <div class="stat-change">From all communities</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Communities</div>
-                            <div class="stat-value" id="totalCommunities">0</div>
-                            <div class="stat-change">Active managed communities</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">New This Week</div>
-                            <div class="stat-value" id="weeklyLeadsOverview">0</div>
-                            <div class="stat-change">Leads in last 7 days</div>
-                        </div>
-                    </div>
-
+                    <div class="stats-grid" id="statsGrid"></div>
                     <div class="table-container">
                         <div class="table-header">
                             <div class="table-title">Recent Leads</div>
                         </div>
-                        <table>
+                        <table id="recentLeadsTable">
                             <thead>
                                 <tr>
                                     <th>Name</th>
-                                    <th>Contact</th>
+                                    <th>Email</th>
                                     <th>Community</th>
                                     <th>Status</th>
                                     <th>Date</th>
                                 </tr>
                             </thead>
-                            <tbody id="recentLeadsBody">
-                                <tr>
-                                    <td colspan="5" style="text-align: center; color: #999;">No leads yet</td>
-                                </tr>
-                            </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
             <!-- LEADS PAGE -->
-            <div class="page" id="leadsPage">
+            <div id="leads" class="page">
                 <div class="page-header">
-                    <h1 class="page-title">Leads</h1>
-                    <p class="page-subtitle">Manage and track all incoming leads.</p>
+                    <div class="page-title">Leads</div>
+                    <button class="btn btn-action" onclick="exportLeadsCSV()">Export CSV</button>
                 </div>
                 <div class="page-content">
-                    <div class="leads-filters">
-                        <select id="statusFilter" class="filter-select">
+                    <div class="filter-bar">
+                        <select id="statusFilter" class="filter-select" onchange="applyLeadsFilter()">
                             <option value="">All Statuses</option>
                             <option value="New">New</option>
                             <option value="Contacted">Contacted</option>
-                            <option value="Tour Scheduled">Tour Scheduled</option>
-                            <option value="Closed">Closed</option>
+                            <option value="Toured">Toured</option>
+                            <option value="Converted">Converted</option>
                         </select>
-                        <button class="button button-primary" id="exportLeads">
-                            ⬇ Export CSV
-                        </button>
                     </div>
-
                     <div class="table-container">
-                        <div class="table-header">
-                            <div class="table-title">All Leads</div>
-                        </div>
-                        <table>
+                        <table id="leadsTable">
                             <thead>
                                 <tr>
                                     <th>Name</th>
@@ -1026,699 +952,914 @@
                                     <th>Date</th>
                                 </tr>
                             </thead>
-                            <tbody id="leadsTableBody">
-                                <tr>
-                                    <td colspan="6" style="text-align: center; color: #999;">No leads yet</td>
-                                </tr>
-                            </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
             <!-- COMMUNITIES PAGE -->
-            <div class="page" id="communitiesPage">
+            <div id="communities" class="page">
                 <div class="page-header">
-                    <h1 class="page-title">Communities</h1>
-                    <p class="page-subtitle">Manage your senior living communities and branding.</p>
+                    <div class="page-title">Communities</div>
+                    <button class="btn btn-add-new" onclick="showCommunityEditor()">Add Community</button>
                 </div>
                 <div class="page-content">
-                    <button class="button button-primary" id="addCommunityBtn" style="margin-bottom: 24px;">
-                        + Add Community
-                    </button>
-
-                    <div class="communities-grid" id="communitiesGrid">
-                        <div style="grid-column: 1 / -1; text-align: center; color: #999; padding: 40px;">
-                            No communities yet. Create one to get started!
-                        </div>
-                    </div>
+                    <div class="communities-grid" id="communitiesGrid"></div>
                 </div>
             </div>
 
-            <!-- ANALYTICS PAGE -->
-            <div class="page" id="analyticsPage">
+            <!-- COMMUNITY EDITOR PAGE -->
+            <div id="communityEditor" class="page">
                 <div class="page-header">
-                    <h1 class="page-title">Chat Analytics</h1>
-                    <p class="page-subtitle">Track conversation metrics and performance.</p>
+                    <div class="page-title" id="editorTitle">Add Community</div>
                 </div>
                 <div class="page-content">
-                    <div class="analytics-grid">
-                        <div class="analytics-card highlight">
-                            <div class="analytics-label">Total Leads</div>
-                            <div class="analytics-value" id="analyticsLeads">0</div>
-                            <div class="analytics-detail">From chat widget</div>
-                        </div>
-                        <div class="analytics-card">
-                            <div class="analytics-label">Communities Active</div>
-                            <div class="analytics-value" id="analyticsCommunities">0</div>
-                            <div class="analytics-detail">With widget configured</div>
-                        </div>
-                        <div class="analytics-card">
-                            <div class="analytics-label">New This Week</div>
-                            <div class="analytics-value" id="analyticsWeekly">0</div>
-                            <div class="analytics-detail">Leads in last 7 days</div>
-                        </div>
-                        <div class="analytics-card">
-                            <div class="analytics-label">New Leads</div>
-                            <div class="analytics-value" id="analyticsNew">0</div>
-                            <div class="analytics-detail">Awaiting follow-up</div>
-                        </div>
-                    </div>
-
-                    <div class="chart-placeholder">
-                        <div class="chart-placeholder-content">
-                            <p style="font-size: 16px; margin-bottom: 8px;">📊 Conversation Volume Over Time</p>
-                            <p style="font-size: 13px; color: #bbb;">Chart data coming soon</p>
-                        </div>
-                    </div>
-
-                    <div class="chart-placeholder">
-                        <div class="chart-placeholder-content">
-                            <p style="font-size: 16px; margin-bottom: 8px;">🎯 Conversion Funnel</p>
-                            <p style="font-size: 13px; color: #bbb;">Chat Started → Lead Created → Tour Scheduled → Converted</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODALS -->
-    <!-- Community Modal -->
-    <div class="modal" id="communityModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title" id="communityModalTitle">Add Community</h2>
-                <button class="modal-close" id="communityModalClose">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-section" style="margin: 0; box-shadow: none;">
-                    <form id="communityForm">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="communityName">Community Name</label>
-                                <input type="text" id="communityName" placeholder="e.g., Sunrise Senior Living" required>
+                    <form id="communityForm" class="form-container" onsubmit="saveCommunity(event)">
+                        <!-- BASIC INFO -->
+                        <div class="form-section">
+                            <div class="form-section-title">Basic Info</div>
+                            <div class="form-row">
+                                <div class="form-field">
+                                    <label>Name</label>
+                                    <input type="text" name="name" required>
+                                </div>
+                                <div class="form-field">
+                                    <label>Slug</label>
+                                    <input type="text" name="slug" required>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="communityLocation">Location</label>
-                                <input type="text" id="communityLocation" placeholder="e.g., Chicago, IL" required>
+                            <div class="form-row">
+                                <div class="form-field">
+                                    <label>Address</label>
+                                    <input type="text" name="address">
+                                </div>
+                                <div class="form-field">
+                                    <label>Phone</label>
+                                    <input type="tel" name="phone">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-field">
+                                    <label>Advisor Name</label>
+                                    <input type="text" name="advisorName">
+                                </div>
+                                <div class="form-field full">
+                                    <label>Greeting</label>
+                                    <input type="text" name="greeting" placeholder="Welcome message for visitors">
+                                </div>
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="brandColor">Brand Primary Color</label>
-                                <input type="color" id="brandColor" value="#003c4c" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="accentColor">Accent Color</label>
-                                <input type="color" id="accentColor" value="#a61c3b" required>
-                            </div>
-                        </div>
-
-                        <div class="form-row full">
-                            <div class="form-group">
-                                <label for="description">Description</label>
-                                <textarea id="description" placeholder="Brief description of the community"></textarea>
-                            </div>
-                        </div>
-
-                        <div class="form-row full">
-                            <div class="form-group">
-                                <label for="amenities">Amenities</label>
-                                <textarea id="amenities" placeholder="List amenities (e.g., fitness center, library, dining hall)"></textarea>
+                        <!-- BRANDING -->
+                        <div class="form-section">
+                            <div class="form-section-title">Branding</div>
+                            <div class="form-row">
+                                <div class="form-field">
+                                    <label>Brand Color</label>
+                                    <div class="color-picker-wrapper">
+                                        <input type="color" name="brandColor" value="#003c4c" onchange="updateColorValue(this, 'brandColorValue')">
+                                        <span class="color-value" id="brandColorValue">#003c4c</span>
+                                    </div>
+                                </div>
+                                <div class="form-field">
+                                    <label>Accent Color</label>
+                                    <div class="color-picker-wrapper">
+                                        <input type="color" name="accentColor" value="#007098" onchange="updateColorValue(this, 'accentColorValue')">
+                                        <span class="color-value" id="accentColorValue">#007098</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="form-row full">
-                            <div class="form-group">
-                                <label for="dining">Dining Options</label>
-                                <textarea id="dining" placeholder="Describe dining options"></textarea>
+                        <!-- CARE & PRICING -->
+                        <div class="form-section">
+                            <div class="form-section-title">Care & Pricing</div>
+                            <table class="care-types-table">
+                                <thead>
+                                    <tr>
+                                        <th>Care Type</th>
+                                        <th>Price</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="careTypesBody">
+                                    <tr>
+                                        <td><input type="text" placeholder="Care Type Name"></td>
+                                        <td><input type="text" placeholder="$0/month"></td>
+                                        <td><button type="button" class="btn-remove-row" onclick="removeCareTypeRow(this)">Remove</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-sm" onclick="addCareTypeRow()" style="margin-top: 12px;">Add Row</button>
+                        </div>
+
+                        <!-- ABOUT -->
+                        <div class="form-section">
+                            <div class="form-section-title">About</div>
+                            <div class="form-field full">
+                                <label>Community Description</label>
+                                <textarea name="communityDescription" placeholder="Describe the community..."></textarea>
                             </div>
                         </div>
 
-                        <div class="form-row full">
-                            <div class="form-group">
-                                <label for="activities">Activities & Programs</label>
-                                <textarea id="activities" placeholder="Describe activities and programs"></textarea>
+                        <!-- LIVING SPACES -->
+                        <div class="form-section">
+                            <div class="form-section-title">Living Spaces</div>
+                            <div class="form-field full">
+                                <label>Room Types</label>
+                                <textarea name="roomTypes" placeholder="Studio, 1-Bedroom, 2-Bedroom..."></textarea>
                             </div>
                         </div>
 
-                        <div class="form-row full">
-                            <div class="form-group">
-                                <label for="petPolicy">Pet Policy</label>
-                                <textarea id="petPolicy" placeholder="Describe pet policy"></textarea>
+                        <!-- AMENITIES & SERVICES -->
+                        <div class="form-section">
+                            <div class="form-section-title">Amenities & Services</div>
+                            <div class="form-field full">
+                                <label>Amenities</label>
+                                <div class="pill-input-container" id="amenitiesContainer"></div>
+                            </div>
+                            <div class="form-field full">
+                                <label>Activities</label>
+                                <div class="pill-input-container" id="activitiesContainer"></div>
+                            </div>
+                            <div class="form-field full">
+                                <label>Daily Living Services</label>
+                                <div class="pill-input-container" id="dailyLivingServicesContainer"></div>
+                            </div>
+                            <div class="form-field full">
+                                <label>Cleaning Services</label>
+                                <div class="pill-input-container" id="cleaningServicesContainer"></div>
+                            </div>
+                            <div class="form-field full">
+                                <label>Included in Rent</label>
+                                <div class="pill-input-container" id="includedInRentContainer"></div>
                             </div>
                         </div>
 
-                        <div class="form-row full">
-                            <div class="form-group">
-                                <label for="visitingHours">Visiting Hours</label>
-                                <textarea id="visitingHours" placeholder="e.g., Daily 8am-8pm"></textarea>
+                        <!-- DINING -->
+                        <div class="form-section">
+                            <div class="form-section-title">Dining</div>
+                            <div class="form-field full">
+                                <label>Dining Options</label>
+                                <textarea name="diningInfo" placeholder="Dining options and meal plans..."></textarea>
                             </div>
                         </div>
 
-                        <div class="form-row full">
-                            <div class="form-group">
-                                <label for="transportation">Transportation</label>
-                                <textarea id="transportation" placeholder="Describe transportation services"></textarea>
+                        <!-- POLICIES -->
+                        <div class="form-section">
+                            <div class="form-section-title">Policies</div>
+                            <div class="form-field full">
+                                <label>Pet Policy</label>
+                                <textarea name="petPolicy" placeholder="Pet policy details..."></textarea>
+                            </div>
+                            <div class="form-field full">
+                                <label>Visiting Hours</label>
+                                <textarea name="visitingHours" placeholder="Visiting hours..."></textarea>
+                            </div>
+                            <div class="form-field full">
+                                <label>Smoking Policy</label>
+                                <textarea name="smokingPolicy" placeholder="Smoking policy..."></textarea>
+                            </div>
+                            <div class="form-field full">
+                                <label>Transportation</label>
+                                <textarea name="transportation" placeholder="Transportation options..."></textarea>
                             </div>
                         </div>
 
-                        <div class="form-row full">
-                            <div class="form-group">
-                                <label for="staffInfo">Staff Information</label>
-                                <textarea id="staffInfo" placeholder="Describe staff qualifications and support"></textarea>
+                        <!-- CARE & MEDICAL -->
+                        <div class="form-section">
+                            <div class="form-section-title">Care & Medical</div>
+                            <div class="form-field full">
+                                <label>Staff Info</label>
+                                <textarea name="staffInfo" placeholder="Staff information..."></textarea>
+                            </div>
+                            <div class="form-field full">
+                                <label>Additional Care</label>
+                                <textarea name="additionalCare" placeholder="Additional care services..."></textarea>
+                            </div>
+                            <div class="form-field full">
+                                <label>Accepted Programs</label>
+                                <textarea name="acceptedPrograms" placeholder="Medicare, Medicaid, etc..."></textarea>
                             </div>
                         </div>
 
-                        <div class="form-row full">
-                            <div class="form-group">
-                                <label for="moveInInfo">Move-In Process</label>
-                                <textarea id="moveInInfo" placeholder="Describe the move-in process"></textarea>
+                        <!-- RELIGIOUS SERVICES -->
+                        <div class="form-section">
+                            <div class="form-section-title">Religious Services</div>
+                            <div class="form-field full">
+                                <label>Religious Services</label>
+                                <textarea name="religiousServices" placeholder="Religious services offered..."></textarea>
                             </div>
                         </div>
 
-                        <div class="form-row full">
-                            <div class="form-group">
-                                <label for="faq">FAQ</label>
-                                <textarea id="faq" placeholder="Frequently asked questions"></textarea>
+                        <!-- SECURITY -->
+                        <div class="form-section">
+                            <div class="form-section-title">Security</div>
+                            <div class="form-field full">
+                                <label>Security</label>
+                                <textarea name="security" placeholder="Security features..."></textarea>
                             </div>
                         </div>
 
-                        <div class="form-row full">
-                            <div class="form-group">
-                                <label for="floorPlansUrl">Floor Plans URL</label>
-                                <input type="url" id="floorPlansUrl" placeholder="https://example.com/floor-plans">
+                        <!-- MOVE-IN -->
+                        <div class="form-section">
+                            <div class="form-section-title">Move-In</div>
+                            <div class="form-field full">
+                                <label>Move-In Info</label>
+                                <textarea name="moveInInfo" placeholder="Move-in process and information..."></textarea>
                             </div>
+                        </div>
+
+                        <!-- FAQ -->
+                        <div class="form-section">
+                            <div class="form-section-title">FAQ</div>
+                            <div id="faqContainer"></div>
+                            <button type="button" class="btn btn-sm" onclick="addFAQItem()" style="margin-top: 12px;">Add FAQ</button>
+                        </div>
+
+                        <!-- LINKS -->
+                        <div class="form-section">
+                            <div class="form-section-title">Links</div>
+                            <div class="form-row">
+                                <div class="form-field">
+                                    <label>Floor Plans URL</label>
+                                    <input type="url" name="floorPlansUrl">
+                                </div>
+                                <div class="form-field">
+                                    <label>Gallery URL</label>
+                                    <input type="url" name="galleryUrl">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EMBED CODE -->
+                        <div class="form-section">
+                            <div class="form-section-title">Embed Code</div>
+                            <div class="form-field full">
+                                <label>Script Tag</label>
+                                <input type="text" id="embedCode" readonly style="background: #f0f1f3; cursor: not-allowed;">
+                                <small style="color: #666; margin-top: 8px; display: block;">Copy this code to embed the chat widget on your website.</small>
+                            </div>
+                        </div>
+
+                        <!-- HIDDEN INPUTS FOR FAQJSON -->
+                        <input type="hidden" name="faq" id="faqJsonInput">
+
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-success">Save Community</button>
+                            <button type="button" class="btn btn-secondary" onclick="navigateTo('communities')">Cancel</button>
                         </div>
                     </form>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="button button-secondary" id="communityModalCancel">Cancel</button>
-                <button class="button button-primary" id="communityModalSave">Save Community</button>
-            </div>
         </div>
     </div>
 
-    <!-- Embed Code Modal -->
-    <div class="modal" id="embedModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Embed Code</h2>
-                <button class="modal-close" id="embedModalClose">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p style="margin-bottom: 16px; font-family: 'Source Serif Pro', serif; color: #666;">
-                    Copy and paste this code into your website to embed the chat widget:
-                </p>
-                <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; border: 1px solid #e0e0e0;">
-                    <pre id="embedCode" style="font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto; color: #333; margin: 0;"></pre>
+    <!-- LEAD DETAIL PANEL -->
+    <div class="modal-overlay" id="panelOverlay" onclick="closeLeadPanel()"></div>
+    <div class="lead-detail-panel" id="leadPanel">
+        <div class="panel-header">
+            <button class="panel-close" onclick="closeLeadPanel()">×</button>
+            <div class="panel-title" id="panelLeadName"></div>
+            <div class="panel-info">
+                <div class="info-row">
+                    <div class="info-label">Email</div>
+                    <div class="info-value" id="panelEmail"></div>
                 </div>
-                <button class="button button-primary" id="copyEmbedBtn" style="margin-top: 16px; width: 100%;">
-                    📋 Copy to Clipboard
-                </button>
+                <div class="info-row">
+                    <div class="info-label">Phone</div>
+                    <div class="info-value" id="panelPhone"></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Community</div>
+                    <div class="info-value" id="panelCommunity"></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Status</div>
+                    <select class="status-dropdown" id="panelStatus" onchange="updateLeadStatus()">
+                        <option value="New">New</option>
+                        <option value="Contacted">Contacted</option>
+                        <option value="Toured">Toured</option>
+                        <option value="Converted">Converted</option>
+                    </select>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Date</div>
+                    <div class="info-value" id="panelDate"></div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-content">
+            <div class="panel-section">
+                <div class="panel-section-title">Notes</div>
+                <textarea id="panelNotes" class="notes-textarea" placeholder="Add notes about this lead..."></textarea>
+                <button class="btn btn-success" onclick="saveLeadNotes()" style="margin-top: 12px;">Save Notes</button>
+            </div>
+            <div class="panel-section">
+                <div class="panel-section-title">Conversation Transcript</div>
+                <div id="conversationContainer" class="conversation"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // ============ CONFIG ============
-        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000' : '';
-        const VALID_USERNAME = 'admin';
-        const VALID_PASSWORD = 'glmc2024';
+        const API_BASE = 'https://gl-chat-platform.vercel.app';
+        let currentEditingCommunityId = null;
+        let allLeads = [];
 
-        // ============ STATE ============
-        let currentUser = null;
-        let leads = [];
-        let communities = [];
-        let editingCommunityId = null;
-
-        // ============ DOM ELEMENTS ============
-        const loginPage = document.getElementById('loginPage');
-        const appContainer = document.getElementById('appContainer');
-        const loginForm = document.getElementById('loginForm');
-        const loginError = document.getElementById('loginError');
-        const logoutButton = document.getElementById('logoutButton');
-        const navItems = document.querySelectorAll('.nav-item');
-        const pages = document.querySelectorAll('.page');
-
-        // ============ INITIALIZATION ============
-        function init() {
-            // Check for existing session — validate token against API
-            const token = localStorage.getItem('adminToken');
-            if (token) {
-                // Validate token by trying to load data
-                fetch(API + '/api/admin/communities', {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                })
-                .then(function(r) {
-                    if (r.ok) {
-                        currentUser = { username: 'admin' };
-                        showApp();
-                        loadData();
-                    } else {
-                        // Token expired or invalid — force re-login
-                        localStorage.removeItem('adminToken');
-                        showLogin();
-                    }
-                })
-                .catch(function() {
-                    showLogin();
-                });
-            } else {
-                showLogin();
-            }
-
-            // Event listeners
-            loginForm.addEventListener('submit', handleLogin);
-            logoutButton.addEventListener('click', handleLogout);
-            navItems.forEach(item => item.addEventListener('click', handleNavClick));
-        }
-
-        // ============ LOGIN ============
-        function handleLogin(e) {
-            e.preventDefault();
+        // ============ AUTH ============
+        async function handleLogin(event) {
+            event.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
 
-            // Call real API for JWT token
-            fetch(API + '/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: username, password: password })
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.token) {
-                    localStorage.setItem('adminToken', data.token);
-                    currentUser = { username: data.user || username };
-                    loginError.style.display = 'none';
-                    showApp();
-                    loadData();
-                } else {
-                    loginError.textContent = data.error || 'Invalid username or password';
-                    loginError.style.display = 'block';
-                }
-            })
-            .catch(function(err) {
-                loginError.textContent = 'Connection error. Please try again.';
-                loginError.style.display = 'block';
-            });
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (!response.ok) throw new Error('Invalid credentials');
+                const data = await response.json();
+                localStorage.setItem('adminToken', data.token);
+                showAdminLayout();
+                loadOverviewStats();
+            } catch (error) {
+                errorDiv.textContent = 'Login failed: ' + error.message;
+                errorDiv.style.display = 'block';
+            }
         }
 
-        function handleLogout() {
-            localStorage.removeItem('adminToken');
-            currentUser = null;
-            showLogin();
-            loginForm.reset();
+        function getAuthHeaders() {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                showLoginPage();
+                return null;
+            }
+            return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
         }
 
-        function showLogin() {
-            loginPage.style.display = 'flex';
-            appContainer.classList.remove('logged-in');
+        function showLoginPage() {
+            document.getElementById('loginPage').style.display = 'flex';
+            document.getElementById('adminLayout').style.display = 'none';
         }
 
-        function showApp() {
-            loginPage.style.display = 'none';
-            appContainer.classList.add('logged-in');
+        function showAdminLayout() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('adminLayout').style.display = 'flex';
         }
 
         // ============ NAVIGATION ============
-        function handleNavClick(e) {
-            e.preventDefault();
-            const page = e.currentTarget.getAttribute('data-page');
-            navigateTo(page);
-        }
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = link.getAttribute('data-page');
+                navigateTo(page);
+            });
+        });
 
         function navigateTo(page) {
-            // Update nav items
-            navItems.forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(page).classList.add('active');
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.querySelector(`[data-page="${page}"]`).classList.add('active');
 
-            // Update pages
-            pages.forEach(p => p.classList.remove('active'));
-            document.getElementById(page + 'Page').classList.add('active');
+            if (page === 'leads') loadLeads();
+            if (page === 'communities') loadCommunities();
+            if (page === 'overview') loadOverviewStats();
         }
 
-        // ============ DATA LOADING ============
-        function loadData() {
-            loadLeads();
-            loadCommunities();
-            updateStats();
-        }
+        // ============ OVERVIEW ============
+        async function loadOverviewStats() {
+            const headers = getAuthHeaders();
+            if (!headers) return;
 
-        function loadLeads() {
-            const token = localStorage.getItem('adminToken');
-            fetch(`${API}/api/admin/leads`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
-            .then(r => r.json())
-            .then(data => {
-                leads = (data && data.leads) ? data.leads : (Array.isArray(data) ? data : []);
-                renderLeads();
-                updateStats();
-            })
-            .catch(err => console.log('Leads load:', err));
-        }
+            try {
+                const [statsRes, leadsRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/admin/stats`, { headers }),
+                    fetch(`${API_BASE}/api/admin/leads`, { headers })
+                ]);
 
-        function loadCommunities() {
-            const token = localStorage.getItem('adminToken');
-            fetch(`${API}/api/admin/communities`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
-            .then(r => r.json())
-            .then(data => {
-                communities = (data && data.communities) ? data.communities : (Array.isArray(data) ? data : []);
-                renderCommunities();
-                updateStats();
-            })
-            .catch(err => console.log('Communities load:', err));
-        }
+                if (statsRes.status === 401) {
+                    showLoginPage();
+                    return;
+                }
 
-        function updateStats() {
-            document.getElementById('totalLeads').textContent = leads.length;
-            document.getElementById('totalCommunities').textContent = communities.length;
+                const stats = await statsRes.json();
+                const leadsData = await leadsRes.json();
 
-            // Leads in last 7 days
-            var now = Date.now();
-            var weekAgo = now - 7 * 24 * 60 * 60 * 1000;
-            var weeklyLeads = leads.filter(function(l) {
-                var ts = (l.createdAt || l.created_at) ? new Date(l.createdAt || l.created_at).getTime() : 0;
-                return ts >= weekAgo;
-            });
+                const statsGrid = document.getElementById('statsGrid');
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-card-label">Total Leads</div>
+                        <div class="stat-card-value">${stats.totalLeads || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Communities</div>
+                        <div class="stat-card-value">${stats.communities || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">New This Week</div>
+                        <div class="stat-card-value">${stats.newThisWeek || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">New This Month</div>
+                        <div class="stat-card-value">${stats.newThisMonth || 0}</div>
+                    </div>
+                `;
 
-            // New leads (status is 'new' or undefined)
-            var newLeads = leads.filter(function(l) {
-                return !l.status || l.status === 'new';
-            });
-
-            // Overview page
-            var weeklyOverview = document.getElementById('weeklyLeadsOverview');
-            if (weeklyOverview) weeklyOverview.textContent = weeklyLeads.length;
-
-            // Analytics page – real data only
-            document.getElementById('analyticsLeads').textContent = leads.length;
-            document.getElementById('analyticsCommunities').textContent = communities.length;
-            document.getElementById('analyticsWeekly').textContent = weeklyLeads.length;
-            document.getElementById('analyticsNew').textContent = newLeads.length;
-
-            renderRecentLeads();
+                // Populate recent leads table
+                const tbody = document.querySelector('#recentLeadsTable tbody');
+                const recent = (leadsData.leads || []).slice(0, 5);
+                tbody.innerHTML = recent.map(lead => `
+                    <tr class="clickable" onclick="openLeadPanel('${lead.id}')">
+                        <td>${lead.name || 'N/A'}</td>
+                        <td>${lead.email || 'N/A'}</td>
+                        <td>${lead.community || 'N/A'}</td>
+                        <td><span style="color: #007098; font-weight: 500;">${lead.status || 'New'}</span></td>
+                        <td>${formatDate(lead.createdAt || lead.created_at)}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
         }
 
         // ============ LEADS ============
-        function renderLeads() {
-            const tbody = document.getElementById('leadsTableBody');
-            if (leads.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No leads yet</td></tr>';
-                return;
-            }
+        async function loadLeads() {
+            const headers = getAuthHeaders();
+            if (!headers) return;
 
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/leads`, { headers });
+                if (response.status === 401) {
+                    showLoginPage();
+                    return;
+                }
+
+                const data = await response.json();
+                allLeads = data.leads || [];
+                renderLeadsTable(allLeads);
+            } catch (error) {
+                console.error('Failed to load leads:', error);
+            }
+        }
+
+        function renderLeadsTable(leads) {
+            const tbody = document.querySelector('#leadsTable tbody');
             tbody.innerHTML = leads.map(lead => `
-                <tr>
-                    <td>${escapeHtml(lead.name)}</td>
-                    <td>${escapeHtml(lead.email)}</td>
-                    <td>${escapeHtml(lead.phone || '-')}</td>
-                    <td>${escapeHtml(lead.community || '-')}</td>
-                    <td>${getStatusBadge(lead.status)}</td>
+                <tr class="clickable" onclick="openLeadPanel('${lead.id}')">
+                    <td>${lead.name || 'N/A'}</td>
+                    <td>${lead.email || 'N/A'}</td>
+                    <td>${lead.phone || 'N/A'}</td>
+                    <td>${lead.community || 'N/A'}</td>
+                    <td><span style="color: #007098; font-weight: 500;">${lead.status || 'New'}</span></td>
                     <td>${formatDate(lead.createdAt || lead.created_at)}</td>
                 </tr>
             `).join('');
         }
 
-        function renderRecentLeads() {
-            const tbody = document.getElementById('recentLeadsBody');
-            const recent = leads.slice(-5).reverse();
-            if (recent.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">No leads yet</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = recent.map(lead => `
-                <tr>
-                    <td>${escapeHtml(lead.name)}</td>
-                    <td>${escapeHtml(lead.email)}</td>
-                    <td>${escapeHtml(lead.community || '-')}</td>
-                    <td>${getStatusBadge(lead.status)}</td>
-                    <td>${formatDate(lead.createdAt || lead.created_at)}</td>
-                </tr>
-            `).join('');
+        function applyLeadsFilter() {
+            const status = document.getElementById('statusFilter').value;
+            const filtered = status ? allLeads.filter(l => l.status === status) : allLeads;
+            renderLeadsTable(filtered);
         }
 
-        function getStatusBadge(status) {
-            const badgeClass = {
-                'New': 'badge-new',
-                'Contacted': 'badge-contacted',
-                'Tour Scheduled': 'badge-scheduled',
-                'Closed': 'badge-closed'
-            }[status] || 'badge-new';
+        async function exportLeadsCSV() {
+            const headers = getAuthHeaders();
+            if (!headers) return;
 
-            return `<span class="badge ${badgeClass}">${status || 'New'}</span>`;
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/leads/export`, { headers });
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'leads.csv';
+                a.click();
+            } catch (error) {
+                console.error('Failed to export leads:', error);
+            }
         }
 
-        document.getElementById('statusFilter').addEventListener('change', (e) => {
-            const filter = e.target.value;
-            const tbody = document.getElementById('leadsTableBody');
-            if (!filter) {
-                renderLeads();
-                return;
-            }
-            const filtered = leads.filter(l => l.status === filter);
-            if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No leads found</td></tr>';
-                return;
-            }
-            tbody.innerHTML = filtered.map(lead => `
-                <tr>
-                    <td>${escapeHtml(lead.name)}</td>
-                    <td>${escapeHtml(lead.email)}</td>
-                    <td>${escapeHtml(lead.phone || '-')}</td>
-                    <td>${escapeHtml(lead.community || '-')}</td>
-                    <td>${getStatusBadge(lead.status)}</td>
-                    <td>${formatDate(lead.createdAt || lead.created_at)}</td>
-                </tr>
-            `).join('');
-        });
+        // ============ LEAD DETAIL PANEL ============
+        async function openLeadPanel(leadId) {
+            const headers = getAuthHeaders();
+            if (!headers) return;
 
-        document.getElementById('exportLeads').addEventListener('click', () => {
-            if (leads.length === 0) {
-                alert('No leads to export');
-                return;
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/leads/${leadId}`, { headers });
+                const lead = await response.json();
+
+                document.getElementById('panelLeadName').textContent = lead.name || 'Unknown';
+                document.getElementById('panelEmail').textContent = lead.email || 'N/A';
+                document.getElementById('panelPhone').textContent = lead.phone || 'N/A';
+                document.getElementById('panelCommunity').textContent = lead.community || 'N/A';
+                document.getElementById('panelStatus').value = lead.status || 'New';
+                document.getElementById('panelDate').textContent = formatDate(lead.createdAt || lead.created_at);
+                document.getElementById('panelNotes').value = lead.notes || '';
+
+                // Render conversation
+                const convo = lead.conversation || [];
+                const conversationDiv = document.getElementById('conversationContainer');
+                conversationDiv.innerHTML = convo.map(msg => {
+                    const isUser = msg.role === 'user';
+                    const timestamp = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : '';
+                    return `
+                        <div class="message-bubble ${isUser ? 'user' : ''}">
+                            <div>
+                                <div class="bubble-content ${msg.role}">${escapeHtml(msg.content)}</div>
+                                ${timestamp ? `<div class="bubble-timestamp">${timestamp}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('leadPanel').classList.add('open');
+                document.getElementById('panelOverlay').classList.add('open');
+            } catch (error) {
+                console.error('Failed to load lead details:', error);
             }
+        }
 
-            let csv = 'Name,Email,Phone,Community,Status,Date\n';
-            csv += leads.map(l =>
-                `"${escapeHtml(l.name)}","${escapeHtml(l.email)}","${escapeHtml(l.phone || '')}","${escapeHtml(l.community || '')}","${l.status || 'New'}","${formatDate(l.createdAt || l.created_at)}"`
-            ).join('\n');
+        function closeLeadPanel() {
+            document.getElementById('leadPanel').classList.remove('open');
+            document.getElementById('panelOverlay').classList.remove('open');
+        }
 
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `leads_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
-        });
+        async function updateLeadStatus() {
+            const leadName = document.getElementById('panelLeadName').textContent;
+            const lead = allLeads.find(l => l.name === leadName);
+            if (!lead) return;
+
+            const status = document.getElementById('panelStatus').value;
+            const headers = getAuthHeaders();
+            if (!headers) return;
+
+            try {
+                await fetch(`${API_BASE}/api/admin/leads/${lead.id}`, {
+                    method: 'PUT',
+                    headers,
+                    body: JSON.stringify({ status })
+                });
+            } catch (error) {
+                console.error('Failed to update status:', error);
+            }
+        }
+
+        async function saveLeadNotes() {
+            const leadName = document.getElementById('panelLeadName').textContent;
+            const lead = allLeads.find(l => l.name === leadName);
+            if (!lead) return;
+
+            const notes = document.getElementById('panelNotes').value;
+            const headers = getAuthHeaders();
+            if (!headers) return;
+
+            try {
+                await fetch(`${API_BASE}/api/admin/leads/${lead.id}`, {
+                    method: 'PUT',
+                    headers,
+                    body: JSON.stringify({ notes })
+                });
+                alert('Notes saved!');
+            } catch (error) {
+                console.error('Failed to save notes:', error);
+            }
+        }
 
         // ============ COMMUNITIES ============
-        function renderCommunities() {
-            const grid = document.getElementById('communitiesGrid');
-            if (communities.length === 0) {
-                grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #999; padding: 40px;">No communities yet. Create one to get started!</div>';
-                return;
-            }
+        async function loadCommunities() {
+            const headers = getAuthHeaders();
+            if (!headers) return;
 
-            grid.innerHTML = communities.map(c => `
-                <div class="community-card">
-                    <div class="community-name">${escapeHtml(c.name)}</div>
-                    <div class="community-location">📍 ${escapeHtml(c.location)}</div>
-                    <div class="community-color" style="background-color: ${escapeHtml(c.brandColor || '#003c4c')}"></div>
-                    <div class="community-actions">
-                        <button class="button button-primary button-small" onclick="editCommunity('${c.id}')">Edit</button>
-                        <button class="button button-secondary button-small" onclick="showEmbedCode('${c.id}')">Embed</button>
-                        <button class="button button-secondary button-small" onclick="deleteCommunity('${c.id}')">Delete</button>
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/communities`, { headers });
+                if (response.status === 401) {
+                    showLoginPage();
+                    return;
+                }
+
+                const data = await response.json();
+                const grid = document.getElementById('communitiesGrid');
+                grid.innerHTML = (data.communities || []).map(community => `
+                    <div class="community-card" onclick="editCommunity('${community.id}')">
+                        <div class="community-card-name">${community.name}</div>
+                        <div class="community-card-detail">📍 ${community.address || 'N/A'}</div>
+                        <div class="community-card-detail">📞 ${community.phone || 'N/A'}</div>
+                        <div class="community-card-detail">👤 ${community.advisorName || 'N/A'}</div>
                     </div>
-                </div>
-            `).join('');
-        }
-
-        document.getElementById('addCommunityBtn').addEventListener('click', () => {
-            editingCommunityId = null;
-            document.getElementById('communityModalTitle').textContent = 'Add Community';
-            resetCommunityForm();
-            document.getElementById('communityModal').classList.add('active');
-        });
-
-        function editCommunity(id) {
-            const community = communities.find(c => c.id === id);
-            if (!community) return;
-
-            editingCommunityId = id;
-            document.getElementById('communityModalTitle').textContent = 'Edit Community';
-            document.getElementById('communityName').value = community.name || '';
-            document.getElementById('communityLocation').value = community.location || '';
-            document.getElementById('brandColor').value = community.brandColor || '#003c4c';
-            document.getElementById('accentColor').value = community.accentColor || '#a61c3b';
-            document.getElementById('description').value = community.description || '';
-            document.getElementById('amenities').value = community.amenities || '';
-            document.getElementById('dining').value = community.dining || '';
-            document.getElementById('activities').value = community.activities || '';
-            document.getElementById('petPolicy').value = community.petPolicy || '';
-            document.getElementById('visitingHours').value = community.visitingHours || '';
-            document.getElementById('transportation').value = community.transportation || '';
-            document.getElementById('staffInfo').value = community.staffInfo || '';
-            document.getElementById('moveInInfo').value = community.moveInInfo || '';
-            document.getElementById('faq').value = community.faq || '';
-            document.getElementById('floorPlansUrl').value = community.floorPlansUrl || '';
-            document.getElementById('communityModal').classList.add('active');
-        }
-
-        function resetCommunityForm() {
-            document.getElementById('communityForm').reset();
-            document.getElementById('brandColor').value = '#003c4c';
-            document.getElementById('accentColor').value = '#a61c3b';
-        }
-
-        function deleteCommunity(id) {
-            if (!confirm('Are you sure? This cannot be undone.')) return;
-
-            const token = localStorage.getItem('adminToken');
-            fetch(`${API}/api/admin/communities/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
-            .then(r => r.json())
-            .then(() => {
-                communities = communities.filter(c => c.id !== id);
-                renderCommunities();
-                updateStats();
-            })
-            .catch(err => alert('Error: ' + err.message));
-        }
-
-        function showEmbedCode(id) {
-            const community = communities.find(c => c.id === id);
-            if (!community) return;
-
-            const code = `<iframe src="https://gl-chat-platform.vercel.app/chat/${id}" width="100%" height="600" frameborder="0" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></iframe>`;
-            document.getElementById('embedCode').textContent = code;
-            document.getElementById('embedModal').classList.add('active');
-        }
-
-        document.getElementById('copyEmbedBtn').addEventListener('click', () => {
-            const code = document.getElementById('embedCode').textContent;
-            navigator.clipboard.writeText(code).then(() => {
-                alert('Embed code copied to clipboard!');
-            });
-        });
-
-        document.getElementById('communityModalSave').addEventListener('click', () => {
-            const name = document.getElementById('communityName').value.trim();
-            const location = document.getElementById('communityLocation').value.trim();
-
-            if (!name || !location) {
-                alert('Please fill in required fields');
-                return;
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load communities:', error);
             }
+        }
 
-            const community = {
-                name,
-                location,
-                brandColor: document.getElementById('brandColor').value,
-                accentColor: document.getElementById('accentColor').value,
-                description: document.getElementById('description').value,
-                amenities: document.getElementById('amenities').value,
-                dining: document.getElementById('dining').value,
-                activities: document.getElementById('activities').value,
-                petPolicy: document.getElementById('petPolicy').value,
-                visitingHours: document.getElementById('visitingHours').value,
-                transportation: document.getElementById('transportation').value,
-                staffInfo: document.getElementById('staffInfo').value,
-                moveInInfo: document.getElementById('moveInInfo').value,
-                faq: document.getElementById('faq').value,
-                floorPlansUrl: document.getElementById('floorPlansUrl').value
+        function showCommunityEditor() {
+            currentEditingCommunityId = null;
+            document.getElementById('editorTitle').textContent = 'Add Community';
+            document.getElementById('communityForm').reset();
+            initializePillInputs();
+            initializeFAQ();
+            updateEmbedCode();
+            navigateTo('communityEditor');
+        }
+
+        async function editCommunity(communityId) {
+            const headers = getAuthHeaders();
+            if (!headers) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/communities/${communityId}`, { headers });
+                const community = await response.json();
+                currentEditingCommunityId = communityId;
+
+                document.getElementById('editorTitle').textContent = `Edit: ${community.name}`;
+                const form = document.getElementById('communityForm');
+
+                // Fill basic fields
+                form.querySelector('[name="name"]').value = community.name || '';
+                form.querySelector('[name="slug"]').value = community.slug || '';
+                form.querySelector('[name="address"]').value = community.address || '';
+                form.querySelector('[name="phone"]').value = community.phone || '';
+                form.querySelector('[name="advisorName"]').value = community.advisorName || '';
+                form.querySelector('[name="greeting"]').value = community.greeting || '';
+                form.querySelector('[name="brandColor"]').value = community.brandColor || '#003c4c';
+                form.querySelector('[name="accentColor"]').value = community.accentColor || '#007098';
+                updateColorValue(form.querySelector('[name="brandColor"]'), 'brandColorValue');
+                updateColorValue(form.querySelector('[name="accentColor"]'), 'accentColorValue');
+                form.querySelector('[name="communityDescription"]').value = community.communityDescription || '';
+                form.querySelector('[name="roomTypes"]').value = community.roomTypes || '';
+                form.querySelector('[name="diningInfo"]').value = community.diningInfo || '';
+                form.querySelector('[name="petPolicy"]').value = community.petPolicy || '';
+                form.querySelector('[name="visitingHours"]').value = community.visitingHours || '';
+                form.querySelector('[name="smokingPolicy"]').value = community.smokingPolicy || '';
+                form.querySelector('[name="transportation"]').value = community.transportation || '';
+                form.querySelector('[name="staffInfo"]').value = community.staffInfo || '';
+                form.querySelector('[name="additionalCare"]').value = community.additionalCare || '';
+                form.querySelector('[name="acceptedPrograms"]').value = community.acceptedPrograms || '';
+                form.querySelector('[name="religiousServices"]').value = community.religiousServices || '';
+                form.querySelector('[name="security"]').value = community.security || '';
+                form.querySelector('[name="moveInInfo"]').value = community.moveInInfo || '';
+                form.querySelector('[name="floorPlansUrl"]').value = community.floorPlansUrl || '';
+                form.querySelector('[name="galleryUrl"]').value = community.galleryUrl || '';
+
+                // Populate care types
+                const careTypesBody = document.getElementById('careTypesBody');
+                careTypesBody.innerHTML = (community.careTypes || []).map(ct => `
+                    <tr>
+                        <td><input type="text" placeholder="Care Type Name" value="${ct.name || ''}"></td>
+                        <td><input type="text" placeholder="$0/month" value="${ct.price || ''}"></td>
+                        <td><button type="button" class="btn-remove-row" onclick="removeCareTypeRow(this)">Remove</button></td>
+                    </tr>
+                `).join('');
+
+                // Populate pill inputs
+                initializePillInputs();
+                populatePillInput('amenitiesContainer', community.amenities || '');
+                populatePillInput('activitiesContainer', community.activities || '');
+                populatePillInput('dailyLivingServicesContainer', community.dailyLivingServices || '');
+                populatePillInput('cleaningServicesContainer', community.cleaningServices || '');
+                populatePillInput('includedInRentContainer', community.includedInRent || '');
+
+                // Populate FAQ
+                initializeFAQ();
+                if (community.faq && Array.isArray(community.faq)) {
+                    const faqContainer = document.getElementById('faqContainer');
+                    faqContainer.innerHTML = community.faq.map((item, idx) => `
+                        <div class="faq-item">
+                            <div class="faq-item-header">
+                                <strong>Question ${idx + 1}</strong>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="removeFAQItem(this)">Remove</button>
+                            </div>
+                            <input type="text" placeholder="Question" value="${item.question || ''}" class="faq-question">
+                            <textarea placeholder="Answer" class="faq-answer">${item.answer || ''}</textarea>
+                        </div>
+                    `).join('');
+                }
+
+                updateEmbedCode();
+                navigateTo('communityEditor');
+            } catch (error) {
+                console.error('Failed to load community:', error);
+            }
+        }
+
+        // ============ PILL INPUT COMPONENT ============
+        function initializePillInputs() {
+            ['amenities', 'activities', 'dailyLivingServices', 'cleaningServices', 'includedInRent'].forEach(field => {
+                const container = document.getElementById(field + 'Container');
+                container.innerHTML = '<input type="text" placeholder="Type and press Enter">';
+                const input = container.querySelector('input');
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addPill(container, input.value);
+                        input.value = '';
+                    }
+                });
+            });
+        }
+
+        function populatePillInput(containerId, csvValue) {
+            const container = document.getElementById(containerId);
+            const items = csvValue ? csvValue.split(',').map(s => s.trim()).filter(s => s) : [];
+            items.forEach(item => addPill(container, item));
+        }
+
+        function addPill(container, value) {
+            if (!value.trim()) return;
+            const input = container.querySelector('input');
+            const pill = document.createElement('div');
+            pill.className = 'pill';
+            pill.innerHTML = `${escapeHtml(value)} <span class="pill-remove" onclick="this.parentElement.remove()">×</span>`;
+            container.insertBefore(pill, input);
+        }
+
+        function getPillValue(containerId) {
+            const container = document.getElementById(containerId);
+            const pills = container.querySelectorAll('.pill');
+            return Array.from(pills).map(p => p.textContent.trim().slice(0, -1)).join(', ');
+        }
+
+        // ============ FAQ ============
+        function initializeFAQ() {
+            const container = document.getElementById('faqContainer');
+            if (container.children.length === 0) {
+                container.innerHTML = `
+                    <div class="faq-item">
+                        <div class="faq-item-header">
+                            <strong>Question 1</strong>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeFAQItem(this)">Remove</button>
+                        </div>
+                        <input type="text" placeholder="Question" class="faq-question">
+                        <textarea placeholder="Answer" class="faq-answer"></textarea>
+                    </div>
+                `;
+            }
+        }
+
+        function addFAQItem() {
+            const container = document.getElementById('faqContainer');
+            const count = container.children.length + 1;
+            const item = document.createElement('div');
+            item.className = 'faq-item';
+            item.innerHTML = `
+                <div class="faq-item-header">
+                    <strong>Question ${count}</strong>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeFAQItem(this)">Remove</button>
+                </div>
+                <input type="text" placeholder="Question" class="faq-question">
+                <textarea placeholder="Answer" class="faq-answer"></textarea>
+            `;
+            container.appendChild(item);
+        }
+
+        function removeFAQItem(btn) {
+            btn.closest('.faq-item').remove();
+        }
+
+        function getFAQArray() {
+            const container = document.getElementById('faqContainer');
+            const items = Array.from(container.querySelectorAll('.faq-item')).map(item => ({
+                question: item.querySelector('.faq-question').value,
+                answer: item.querySelector('.faq-answer').value
+            }));
+            return items;
+        }
+
+        // ============ CARE TYPES ============
+        function addCareTypeRow() {
+            const tbody = document.getElementById('careTypesBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" placeholder="Care Type Name"></td>
+                <td><input type="text" placeholder="$0/month"></td>
+                <td><button type="button" class="btn-remove-row" onclick="removeCareTypeRow(this)">Remove</button></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function removeCareTypeRow(btn) {
+            btn.closest('tr').remove();
+        }
+
+        function getCareTypes() {
+            const rows = document.querySelectorAll('#careTypesBody tr');
+            return Array.from(rows).map(row => {
+                const inputs = row.querySelectorAll('input');
+                return {
+                    name: inputs[0].value,
+                    price: inputs[1].value
+                };
+            }).filter(ct => ct.name);
+        }
+
+        // ============ COLOR PICKER ============
+        function updateColorValue(input, targetId) {
+            document.getElementById(targetId).textContent = input.value.toUpperCase();
+        }
+
+        // ============ EMBED CODE ============
+        function updateEmbedCode() {
+            const slug = document.querySelector('[name="slug"]').value || 'community-slug';
+            const embedCode = `<script src="${API_BASE}/chat-widget.js" data-community-id="${slug}"><\/script>`;
+            document.getElementById('embedCode').value = embedCode;
+        }
+
+        document.querySelector('[name="slug"]').addEventListener('change', updateEmbedCode);
+
+        // ============ SAVE COMMUNITY ============
+        async function saveCommunity(event) {
+            event.preventDefault();
+            const headers = getAuthHeaders();
+            if (!headers) return;
+
+            const form = document.getElementById('communityForm');
+            const formData = new FormData(form);
+
+            // Build payload with camelCase keys
+            const payload = {
+                name: formData.get('name'),
+                slug: formData.get('slug'),
+                address: formData.get('address'),
+                phone: formData.get('phone'),
+                advisorName: formData.get('advisorName'),
+                greeting: formData.get('greeting'),
+                brandColor: formData.get('brandColor'),
+                accentColor: formData.get('accentColor'),
+                careTypes: getCareTypes(),
+                communityDescription: formData.get('communityDescription'),
+                roomTypes: formData.get('roomTypes'),
+                amenities: getPillValue('amenitiesContainer'),
+                activities: getPillValue('activitiesContainer'),
+                dailyLivingServices: getPillValue('dailyLivingServicesContainer'),
+                cleaningServices: getPillValue('cleaningServicesContainer'),
+                includedInRent: getPillValue('includedInRentContainer'),
+                diningInfo: formData.get('diningInfo'),
+                petPolicy: formData.get('petPolicy'),
+                visitingHours: formData.get('visitingHours'),
+                smokingPolicy: formData.get('smokingPolicy'),
+                transportation: formData.get('transportation'),
+                staffInfo: formData.get('staffInfo'),
+                additionalCare: formData.get('additionalCare'),
+                acceptedPrograms: formData.get('acceptedPrograms'),
+                religiousServices: formData.get('religiousServices'),
+                security: formData.get('security'),
+                moveInInfo: formData.get('moveInInfo'),
+                faq: getFAQArray(),
+                floorPlansUrl: formData.get('floorPlansUrl'),
+                galleryUrl: formData.get('galleryUrl')
             };
 
-            const token = localStorage.getItem('adminToken');
-            const method = editingCommunityId ? 'PUT' : 'POST';
-            const url = editingCommunityId
-                ? `${API}/api/admin/communities/${editingCommunityId}`
-                : `${API}/api/admin/communities`;
+            try {
+                const url = currentEditingCommunityId
+                    ? `${API_BASE}/api/admin/communities/${currentEditingCommunityId}`
+                    : `${API_BASE}/api/admin/communities`;
+                const method = currentEditingCommunityId ? 'PUT' : 'POST';
 
-            fetch(url, {
-                method,
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(community)
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (editingCommunityId) {
-                    const idx = communities.findIndex(c => c.id === editingCommunityId);
-                    if (idx >= 0) {
-                        communities[idx] = data;
-                    }
+                const response = await fetch(url, {
+                    method,
+                    headers,
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert('Community saved successfully!');
+                    navigateTo('communities');
+                    loadCommunities();
                 } else {
-                    communities.push(data);
+                    alert('Failed to save community');
                 }
-                renderCommunities();
-                updateStats();
-                document.getElementById('communityModal').classList.remove('active');
-                resetCommunityForm();
-            })
-            .catch(err => alert('Error: ' + err.message));
-        });
-
-        // ============ MODALS ============
-        document.getElementById('communityModalClose').addEventListener('click', () => {
-            document.getElementById('communityModal').classList.remove('active');
-            resetCommunityForm();
-        });
-
-        document.getElementById('communityModalCancel').addEventListener('click', () => {
-            document.getElementById('communityModal').classList.remove('active');
-            resetCommunityForm();
-        });
-
-        document.getElementById('embedModalClose').addEventListener('click', () => {
-            document.getElementById('embedModal').classList.remove('active');
-        });
-
-        // Close modals on background click
-        document.getElementById('communityModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('communityModal')) {
-                document.getElementById('communityModal').classList.remove('active');
+            } catch (error) {
+                console.error('Failed to save community:', error);
+                alert('Error: ' + error.message);
             }
-        });
-
-        document.getElementById('embedModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('embedModal')) {
-                document.getElementById('embedModal').classList.remove('active');
-            }
-        });
+        }
 
         // ============ UTILITIES ============
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
         function escapeHtml(text) {
-            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        function formatDate(dateString) {
-            if (!dateString) return '-';
-            return new Date(dateString).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: new Date(dateString).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-            });
+        // ============ INIT ============
+        if (localStorage.getItem('adminToken')) {
+            showAdminLayout();
+            loadOverviewStats();
+        } else {
+            showLoginPage();
         }
-
-        // ============ START APP ============
-        init();
     </script>
 </body>
 </html>

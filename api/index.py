@@ -26,7 +26,7 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 COMMUNITIES_FILE = "/tmp/gl_communities.json"
 LEADS_FILE = "/tmp/gl_leads.json"
 SEED_VERSION_FILE = "/tmp/gl_seed_version.txt"
-SEED_VERSION = "3"  # Bump this to force re-seed with enriched data
+SEED_VERSION = "4"  # Bump this to force re-seed with enriched data
 
 # ── In-memory data store (synced with files on startup) ──
 COMMUNITIES = {}
@@ -104,8 +104,8 @@ def _seed():
             "gallery_url": "https://glennseniorliving.com/west-st-paul-mn/",
             "floor_plans_thumb": None,
             "gallery_thumb": None,
-            "advisor_name": "Sarah",
-            "greeting": "Hi! I'm Sarah, your advisor here at The Glenn. Are you exploring senior living options for yourself or a loved one?",
+            "advisor_name": "Your Advisor",
+            "greeting": "Hi there! Welcome to The Glenn. Are you exploring senior living options for yourself or a loved one?",
             "tour_enabled": True,
             "sms_enabled": True,
             "care_types": [
@@ -256,7 +256,7 @@ def _build_system_prompt(community):
         for item in community.get("faq", []):
             faq_text += f"Q: {item.get('q')} A: {item.get('a')}\n"
 
-    system_prompt = f"""You are {community.get('advisor_name', 'an advisor')} at {community.get('name', 'our community')}. You're chatting with a website visitor through a small chat widget on the community's website.
+    system_prompt = f"""You are a friendly advisor at {community.get('name', 'our community')}. You're chatting with a website visitor through a small chat widget on the community's website.
 
 PERSONALITY: You are warm, friendly, and genuinely helpful — like a real person texting, not a robot. You care about finding the right fit for each person.
 
@@ -271,11 +271,13 @@ PERSONALITY: You are warm, friendly, and genuinely helpful — like a real perso
 8. Mirror their tone — if they're casual, be casual. If they're formal, match that.
 
 === YOUR GOAL (in this order) ===
-1. Figure out WHO they're looking for (themselves? a parent? spouse?) and WHAT matters most to them.
-2. Answer their questions helpfully and build trust.
-3. After 2-3 exchanges, naturally suggest a tour: "Would you like to come see the community in person? I'd love to show you around."
-4. Get their contact info: "What's the best name and number to reach you at? I'll have our team set something up."
-5. If they hesitate on a tour, offer to send info: "I can have someone send you more details — what's a good email?"
+1. Figure out WHO they're looking for (themselves? a parent? spouse?) and WHAT matters most.
+2. Answer their questions helpfully — be genuinely useful and build trust.
+3. After 2-3 exchanges, naturally suggest scheduling a tour: "Would you like to come see the community? I'd love to show you around!"
+4. When they show interest in a tour or more info, ask for their name naturally: "Great! What's your name so I can get that set up for you?"
+5. Then ask for their best contact: "And what's the best number or email to reach you at?"
+6. If they hesitate on a tour, offer to email info: "No pressure at all! I can have someone send you more details — what's a good email?"
+7. NEVER ask for all contact info at once. Get name first, then phone/email in a follow-up.
 
 === COMMUNITY KNOWLEDGE ===
 {community.get('name', 'Our Community')}
@@ -337,6 +339,33 @@ def _call_anthropic_api(system_prompt, messages):
             return None, f"API error: {e.code} {e.reason}"
     except Exception as e:
         return None, f"Request error: {str(e)}"
+
+
+def _extract_contact_info(messages):
+    """Extract name, email, phone from conversation messages."""
+    import re
+    info = {}
+    email_pattern = re.compile(r'[\w.+-]+@[\w-]+\.[\w.-]+')
+    phone_pattern = re.compile(r'[\(]?\d{3}[\)\s.-]?\s*\d{3}[\s.-]?\d{4}')
+
+    for msg in messages:
+        if msg.get('role') != 'user':
+            continue
+        text = msg.get('content', '')
+
+        # Extract email
+        if not info.get('email'):
+            match = email_pattern.search(text)
+            if match:
+                info['email'] = match.group()
+
+        # Extract phone
+        if not info.get('phone'):
+            match = phone_pattern.search(text)
+            if match:
+                info['phone'] = match.group()
+
+    return info
 
 
 class handler(BaseHTTPRequestHandler):
@@ -434,6 +463,15 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(body)
             return
 
+        if path.startswith("/api/admin/leads/") and path != "/api/admin/leads/export":
+            if not self._auth():
+                return self._json({"error": "Unauthorized"}, 401)
+            lid = path.split("/")[-1]
+            lead = LEADS.get(lid)
+            if not lead:
+                return self._json({"error": "Not found"}, 404)
+            return self._json(lead)
+
         self._json({"error": "Not found"}, 404)
 
     def do_POST(self):
@@ -469,24 +507,45 @@ class handler(BaseHTTPRequestHandler):
             if error:
                 return self._json({"error": error}, 500)
 
-            # Determine if we should capture a lead
+            # Auto-detect contact info from conversation
+            detected = _extract_contact_info(messages)
+
+            # Store/update lead if we have any contact info
             should_capture_lead = False
-            if lead_data and lead_data.get("name") and lead_data.get("email"):
+            if detected.get('email') or detected.get('phone'):
                 should_capture_lead = True
-                # Auto-save the lead
-                lid = f"lead_{uuid.uuid4().hex[:12]}"
-                lead_record = {
-                    "id": lid,
-                    "community": community_id,
-                    "name": lead_data.get("name"),
-                    "email": lead_data.get("email"),
-                    "phone": lead_data.get("phone"),
-                    "care_type": lead_data.get("care_type"),
-                    "timeline": lead_data.get("timeline"),
-                    "status": "new",
-                    "created_at": datetime.utcnow().isoformat(),
-                }
-                LEADS[lid] = lead_record
+                # Check if we already have a lead for this conversation
+                existing_lead = None
+                conv_key = community_id + "_" + (detected.get('email', '') or detected.get('phone', ''))
+                for lid, lead in LEADS.items():
+                    if lead.get('_conv_key') == conv_key:
+                        existing_lead = lid
+                        break
+
+                if existing_lead:
+                    # Update existing lead with new info and conversation
+                    LEADS[existing_lead].update({
+                        k: v for k, v in detected.items() if v
+                    })
+                    LEADS[existing_lead]['conversation'] = messages + [{"role": "assistant", "content": response_text}]
+                    LEADS[existing_lead]['updated_at'] = datetime.utcnow().isoformat()
+                else:
+                    lid = f"lead_{uuid.uuid4().hex[:12]}"
+                    LEADS[lid] = {
+                        "id": lid,
+                        "community": community_id,
+                        "community_name": community.get("name", ""),
+                        "name": detected.get('name', ''),
+                        "email": detected.get('email', ''),
+                        "phone": detected.get('phone', ''),
+                        "care_type": "",
+                        "status": "new",
+                        "source": "chat_widget",
+                        "conversation": messages + [{"role": "assistant", "content": response_text}],
+                        "_conv_key": conv_key,
+                        "created_at": datetime.utcnow().isoformat(),
+                        "updated_at": datetime.utcnow().isoformat(),
+                    }
                 _save_to_file(LEADS_FILE, LEADS)
 
             # Detect if visitor seems interested (simple heuristic)
@@ -506,6 +565,8 @@ class handler(BaseHTTPRequestHandler):
             data["id"] = lid
             data["status"] = "new"
             data["created_at"] = datetime.utcnow().isoformat()
+            if "conversation" not in data:
+                data["conversation"] = []
             LEADS[lid] = data
             _save_to_file(LEADS_FILE, LEADS)
             return self._json({"status": "ok", "id": lid}, 201)
@@ -525,6 +586,15 @@ class handler(BaseHTTPRequestHandler):
                 "visitingHours": "visiting_hours", "transportation": "transportation",
                 "staffInfo": "staff_info", "moveInInfo": "move_in_info",
                 "faq": "faq",
+                "roomTypes": "room_types",
+                "dailyLivingServices": "daily_living_services",
+                "cleaningServices": "cleaning_services",
+                "security": "security",
+                "includedInRent": "included_in_rent",
+                "additionalCare": "additional_care",
+                "acceptedPrograms": "accepted_programs",
+                "smokingPolicy": "smoking_policy",
+                "religiousServices": "religious_services",
             }
             mapped = {}
             for k, v in data.items():
@@ -561,6 +631,15 @@ class handler(BaseHTTPRequestHandler):
                     "visitingHours": "visiting_hours", "transportation": "transportation",
                     "staffInfo": "staff_info", "moveInInfo": "move_in_info",
                     "faq": "faq",
+                    "roomTypes": "room_types",
+                    "dailyLivingServices": "daily_living_services",
+                    "cleaningServices": "cleaning_services",
+                    "security": "security",
+                    "includedInRent": "included_in_rent",
+                    "additionalCare": "additional_care",
+                    "acceptedPrograms": "accepted_programs",
+                    "smokingPolicy": "smoking_policy",
+                    "religiousServices": "religious_services",
                 }
                 mapped = {}
                 for k, v in data.items():
