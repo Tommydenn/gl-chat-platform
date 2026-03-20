@@ -1064,24 +1064,24 @@
                 <div class="page-content">
                     <div class="analytics-grid">
                         <div class="analytics-card highlight">
-                            <div class="analytics-label">Total Conversations</div>
-                            <div class="analytics-value">2,847</div>
-                            <div class="analytics-detail">Across all communities</div>
+                            <div class="analytics-label">Total Leads</div>
+                            <div class="analytics-value" id="analyticsLeads">0</div>
+                            <div class="analytics-detail">From chat widget</div>
                         </div>
                         <div class="analytics-card">
-                            <div class="analytics-label">Avg Messages/Conv.</div>
-                            <div class="analytics-value">8.3</div>
-                            <div class="analytics-detail">Average conversation length</div>
+                            <div class="analytics-label">Communities Active</div>
+                            <div class="analytics-value" id="analyticsCommunities">0</div>
+                            <div class="analytics-detail">With widget configured</div>
                         </div>
                         <div class="analytics-card">
-                            <div class="analytics-label">Lead Conversion Rate</div>
-                            <div class="analytics-value">18.2%</div>
-                            <div class="analytics-detail">Chat to lead conversion</div>
+                            <div class="analytics-label">New This Week</div>
+                            <div class="analytics-value" id="analyticsWeekly">0</div>
+                            <div class="analytics-detail">Leads in last 7 days</div>
                         </div>
                         <div class="analytics-card">
-                            <div class="analytics-label">Avg Response Time</div>
-                            <div class="analytics-value">2.4m</div>
-                            <div class="analytics-detail">Average staff response time</div>
+                            <div class="analytics-label">New Leads</div>
+                            <div class="analytics-value" id="analyticsNew">0</div>
+                            <div class="analytics-detail">Awaiting follow-up</div>
                         </div>
                     </div>
 
@@ -1374,6 +1374,26 @@
         function updateStats() {
             document.getElementById('totalLeads').textContent = leads.length;
             document.getElementById('totalCommunities').textContent = communities.length;
+
+            // Analytics page – real data only
+            document.getElementById('analyticsLeads').textContent = leads.length;
+            document.getElementById('analyticsCommunities').textContent = communities.length;
+
+            // Leads in last 7 days
+            var now = Date.now();
+            var weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+            var weeklyLeads = leads.filter(function(l) {
+                var ts = l.createdAt ? new Date(l.createdAt).getTime() : 0;
+                return ts >= weekAgo;
+            });
+            document.getElementById('analyticsWeekly').textContent = weeklyLeads.length;
+
+            // New leads (status is 'new' or undefined)
+            var newLeads = leads.filter(function(l) {
+                return !l.status || l.status === 'new';
+            });
+            document.getElementById('analyticsNew').textContent = newLeads.length;
+
             renderRecentLeads();
         }
 

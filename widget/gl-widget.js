@@ -2,25 +2,34 @@
   'use strict';
 
   /**
-   * Great Lakes Chat Widget
+   * Great Lakes Chat Widget v2.0
    * AI-powered conversational interface for senior living communities
-   * Registers as <gl-chat> custom element with Web Component architecture
+   * Powered by Anthropic Claude via Great Lakes Management
    */
 
   const style = `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
     :host {
-      --brand-color: #2c5f7f;
-      --brand-color-hover: #1e4a5f;
-      --secondary-color: #f5f5f5;
-      --accent-color: #ff6b35;
-      --text-dark: #333;
-      --text-light: #666;
-      --border-color: #ddd;
-      --message-user-bg: var(--brand-color);
-      --message-ai-bg: #e8eef3;
-      --input-bg: #fff;
-      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
-      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.15);
+      --primary: #003c4c;
+      --primary-light: #007098;
+      --primary-lighter: #e8f4f8;
+      --accent: #a61c3b;
+      --surface: #ffffff;
+      --surface-alt: #f7f8fa;
+      --text-primary: #1a2b3c;
+      --text-secondary: #5f6b7a;
+      --text-muted: #8e99a4;
+      --border: #e2e8f0;
+      --border-light: #f0f3f6;
+      --shadow-sm: 0 1px 3px rgba(0,60,76,0.08);
+      --shadow-md: 0 4px 20px rgba(0,60,76,0.12);
+      --shadow-lg: 0 12px 40px rgba(0,60,76,0.18);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     * {
@@ -29,334 +38,445 @@
       padding: 0;
     }
 
-    .gl-widget-container {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-        sans-serif;
+    .gl-widget-root {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       position: fixed;
-      bottom: 20px;
-      right: 20px;
+      bottom: 24px;
+      right: 24px;
       z-index: 999999;
       font-size: 14px;
       line-height: 1.5;
-      color: var(--text-dark);
+      color: var(--text-primary);
     }
 
-    .gl-widget-container[data-position="left"] {
-      left: 20px;
+    .gl-widget-root[data-position="left"] {
+      left: 24px;
       right: auto;
     }
 
-    /* Floating Bubble Launcher */
+    /* ─── Launcher ─── */
     .gl-launcher {
-      position: relative;
       width: 60px;
       height: 60px;
       border-radius: 50%;
-      background-color: var(--brand-color);
-      box-shadow: var(--shadow-md);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      box-shadow: var(--shadow-lg), 0 0 0 0 rgba(0,112,152,0.4);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       border: none;
       padding: 0;
-      user-select: none;
-      z-index: 1;
+      transition: all var(--transition);
+      position: relative;
+      animation: pulse-ring 3s ease-out infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% { box-shadow: var(--shadow-lg), 0 0 0 0 rgba(0,112,152,0.35); }
+      50% { box-shadow: var(--shadow-lg), 0 0 0 12px rgba(0,112,152,0); }
+      100% { box-shadow: var(--shadow-lg), 0 0 0 0 rgba(0,112,152,0); }
     }
 
     .gl-launcher:hover {
-      background-color: var(--brand-color-hover);
-      transform: scale(1.1);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+      transform: scale(1.08);
+      box-shadow: var(--shadow-lg);
+      animation: none;
     }
 
-    .gl-launcher:active {
-      transform: scale(0.95);
-    }
+    .gl-launcher:active { transform: scale(0.95); }
 
-    .gl-launcher.open {
+    .gl-launcher.hide {
       opacity: 0;
       pointer-events: none;
       transform: scale(0);
     }
 
-    .gl-launcher-badge {
-      position: absolute;
-      top: -5px;
-      right: -5px;
-      width: 20px;
-      height: 20px;
-      background-color: var(--accent-color);
-      border-radius: 50%;
-      display: none;
-      align-items: center;
-      justify-content: center;
+    .gl-launcher svg {
+      width: 26px;
+      height: 26px;
       color: white;
-      font-size: 12px;
-      font-weight: bold;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
-    .gl-launcher-badge.show {
-      display: flex;
-    }
-
-    .gl-launcher-icon {
-      color: white;
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Chat Window */
-    .gl-chat-window {
+    /* ─── Chat Window ─── */
+    .gl-window {
       position: absolute;
-      bottom: 80px;
+      bottom: 76px;
       right: 0;
-      background: white;
-      border-radius: 12px;
-      box-shadow: var(--shadow-md);
+      width: 400px;
+      height: 580px;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
       display: none;
       flex-direction: column;
-      width: 100%;
-      max-width: 420px;
-      height: 600px;
+      overflow: hidden;
       z-index: 2;
-      animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: window-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .gl-widget-container[data-position="left"] .gl-chat-window {
+    .gl-widget-root[data-position="left"] .gl-window {
       left: 0;
       right: auto;
     }
 
-    .gl-chat-window.open {
-      display: flex;
+    .gl-window.open { display: flex; }
+
+    @keyframes window-enter {
+      from { opacity: 0; transform: translateY(16px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Header */
-    .gl-chat-header {
-      background-color: var(--brand-color);
+    /* ─── Header ─── */
+    .gl-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
       color: white;
-      padding: 16px;
-      border-radius: 12px 12px 0 0;
+      padding: 18px 20px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 12px;
       flex-shrink: 0;
+      position: relative;
     }
 
-    .gl-chat-header-content {
-      flex: 1;
+    .gl-header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.04), transparent);
     }
 
-    .gl-chat-header-title {
-      font-weight: 600;
-      font-size: 16px;
-      margin-bottom: 2px;
-    }
-
-    .gl-chat-header-subtitle {
-      font-size: 12px;
-      opacity: 0.9;
-    }
-
-    .gl-chat-close-btn {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-      padding: 0;
-      width: 30px;
-      height: 30px;
+    .gl-header-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.2s;
+      flex-shrink: 0;
     }
 
-    .gl-chat-close-btn:hover {
-      opacity: 0.8;
+    .gl-header-avatar svg {
+      width: 22px;
+      height: 22px;
+      color: white;
     }
 
-    /* Messages Container */
-    .gl-messages-container {
+    .gl-header-info { flex: 1; min-width: 0; }
+
+    .gl-header-name {
+      font-weight: 600;
+      font-size: 15px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .gl-header-status {
+      font-size: 12px;
+      opacity: 0.85;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .gl-header-status::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #4ade80;
+      display: inline-block;
+    }
+
+    .gl-close {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: background var(--transition);
+      flex-shrink: 0;
+    }
+
+    .gl-close:hover { background: rgba(255,255,255,0.25); }
+
+    /* ─── Messages ─── */
+    .gl-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 16px;
+      padding: 20px 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      background-color: #fafafa;
+      gap: 16px;
+      background: var(--surface-alt);
+      scroll-behavior: smooth;
     }
 
-    .gl-messages-container::-webkit-scrollbar {
-      width: 6px;
-    }
+    .gl-messages::-webkit-scrollbar { width: 5px; }
+    .gl-messages::-webkit-scrollbar-track { background: transparent; }
+    .gl-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-    .gl-messages-container::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 3px;
-    }
-
-    .gl-messages-container::-webkit-scrollbar-thumb {
-      background: #ccc;
-      border-radius: 3px;
-    }
-
-    .gl-messages-container::-webkit-scrollbar-thumb:hover {
-      background: #999;
-    }
-
-    /* Message */
-    .gl-message {
+    .gl-msg {
       display: flex;
-      animation: fadeIn 0.3s ease-in;
+      flex-direction: column;
+      animation: msg-enter 0.3s ease-out;
+      max-width: 100%;
+    }
+
+    @keyframes msg-enter {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .gl-msg.user { align-items: flex-end; }
+    .gl-msg.ai { align-items: flex-start; }
+
+    .gl-bubble {
+      max-width: 82%;
+      padding: 10px 14px;
+      font-size: 14px;
+      line-height: 1.55;
       word-wrap: break-word;
       word-break: break-word;
     }
 
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .gl-message.user {
-      justify-content: flex-end;
-    }
-
-    .gl-message.ai {
-      justify-content: flex-start;
-    }
-
-    .gl-message-bubble {
-      max-width: 85%;
-      padding: 10px 14px;
-      border-radius: 12px;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-
-    .gl-message.user .gl-message-bubble {
-      background-color: var(--message-user-bg);
+    .gl-msg.user .gl-bubble {
+      background: var(--primary);
       color: white;
-      border-bottom-right-radius: 4px;
+      border-radius: var(--radius-md) var(--radius-md) 4px var(--radius-md);
     }
 
-    .gl-message.ai .gl-message-bubble {
-      background-color: var(--message-ai-bg);
-      color: var(--text-dark);
-      border-bottom-left-radius: 4px;
+    .gl-msg.ai .gl-bubble {
+      background: var(--surface);
+      color: var(--text-primary);
+      border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 4px;
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
     }
 
-    /* Typing Indicator */
-    .gl-typing-indicator {
+    .gl-msg-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      padding: 0 4px;
+    }
+
+    /* ─── Typing ─── */
+    .gl-typing {
       display: flex;
+      align-items: center;
       gap: 4px;
-      padding: 10px 14px;
-      background-color: var(--message-ai-bg);
-      border-radius: 12px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 4px;
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
       width: fit-content;
-      border-bottom-left-radius: 4px;
     }
 
-    .gl-typing-dot {
-      width: 8px;
-      height: 8px;
+    .gl-dot {
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
-      background-color: var(--text-light);
-      animation: typing 1.4s infinite;
+      background: var(--primary-light);
+      animation: dot-bounce 1.4s ease-in-out infinite;
     }
 
-    .gl-typing-dot:nth-child(2) {
-      animation-delay: 0.2s;
+    .gl-dot:nth-child(2) { animation-delay: 0.16s; }
+    .gl-dot:nth-child(3) { animation-delay: 0.32s; }
+
+    @keyframes dot-bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-6px); opacity: 1; }
     }
 
-    .gl-typing-dot:nth-child(3) {
-      animation-delay: 0.4s;
+    /* ─── Quick Replies ─── */
+    .gl-quick-replies {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-light);
+      background: var(--surface);
     }
 
-    @keyframes typing {
-      0%, 60%, 100% {
-        opacity: 0.5;
-        transform: translateY(0);
-      }
-      30% {
-        opacity: 1;
-        transform: translateY(-10px);
-      }
-    }
-
-    /* Pricing Card */
-    .gl-pricing-card {
-      background: white;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 14px;
-      margin: 8px 0;
+    .gl-chip {
+      background: var(--primary-lighter);
+      color: var(--primary);
+      border: 1px solid transparent;
+      padding: 8px 14px;
+      border-radius: var(--radius-full);
       font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    .gl-chip:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .gl-chip:active { transform: scale(0.96); }
+
+    /* ─── Input Area ─── */
+    .gl-input-area {
+      padding: 12px 16px 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      background: var(--surface);
+    }
+
+    .gl-input-wrap {
+      flex: 1;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .gl-input-wrap:focus-within {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(0,112,152,0.1);
+    }
+
+    .gl-input-wrap input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 10px 0;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .gl-input-wrap input::placeholder { color: var(--text-muted); }
+
+    .gl-send-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .gl-send-btn:hover:not(:disabled) {
+      background: var(--primary-light);
+      transform: scale(1.05);
+    }
+
+    .gl-send-btn:active:not(:disabled) { transform: scale(0.95); }
+
+    .gl-send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .gl-send-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    /* ─── Footer ─── */
+    .gl-footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 6px 0 10px;
+      background: var(--surface);
+    }
+
+    .gl-footer a {
+      color: var(--primary-light);
+      text-decoration: none;
+    }
+
+    /* ─── Inline Cards ─── */
+    .gl-pricing-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-top: 8px;
     }
 
     .gl-pricing-card-title {
       font-weight: 600;
+      font-size: 14px;
       margin-bottom: 10px;
-      color: var(--text-dark);
+      color: var(--primary);
     }
 
     .gl-pricing-item {
       display: flex;
       justify-content: space-between;
-      padding: 6px 0;
-      border-bottom: 1px solid #f0f0f0;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-light);
     }
 
-    .gl-pricing-item:last-child {
-      border-bottom: none;
-    }
+    .gl-pricing-item:last-child { border-bottom: none; }
 
     .gl-pricing-name {
-      color: var(--text-dark);
-      font-weight: 500;
+      font-size: 13px;
+      color: var(--text-primary);
     }
 
     .gl-pricing-price {
-      color: var(--brand-color);
+      font-size: 13px;
       font-weight: 600;
+      color: var(--primary);
     }
 
-    /* Contact Form */
+    /* ─── Contact Form ─── */
     .gl-contact-form {
-      background: white;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 14px;
-      margin: 8px 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-top: 8px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
+    }
+
+    .gl-contact-form-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--primary);
+      margin-bottom: 2px;
     }
 
     .gl-form-group {
@@ -368,254 +488,156 @@
     .gl-form-label {
       font-size: 12px;
       font-weight: 600;
-      color: var(--text-dark);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
-    .gl-form-input,
-    .gl-form-select {
-      padding: 8px 10px;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      font-size: 13px;
+    .gl-form-input, .gl-form-select {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
       font-family: inherit;
-      color: var(--text-dark);
+      color: var(--text-primary);
+      background: var(--surface);
+      transition: border-color var(--transition), box-shadow var(--transition);
     }
 
-    .gl-form-input:focus,
-    .gl-form-select:focus {
+    .gl-form-input:focus, .gl-form-select:focus {
       outline: none;
-      border-color: var(--brand-color);
-      box-shadow: 0 0 0 3px rgba(44, 95, 127, 0.1);
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(0,112,152,0.1);
     }
 
     .gl-form-submit {
-      padding: 10px 14px;
-      background-color: var(--brand-color);
+      padding: 11px 16px;
+      background: var(--primary);
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: var(--radius-sm);
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: background var(--transition);
+      font-family: inherit;
+      margin-top: 4px;
     }
 
-    .gl-form-submit:hover {
-      background-color: var(--brand-color-hover);
-    }
+    .gl-form-submit:hover { background: var(--primary-light); }
+    .gl-form-submit:active { transform: scale(0.98); }
 
-    .gl-form-submit:active {
-      transform: scale(0.98);
-    }
-
-    /* Confirmation Message */
-    .gl-confirmation-message {
-      background-color: #d4edda;
-      border: 1px solid #c3e6cb;
-      color: #155724;
-      padding: 12px;
-      border-radius: 6px;
+    /* ─── Confirmation ─── */
+    .gl-confirmation {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
       font-size: 13px;
-      margin: 8px 0;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    /* Quick Reply Chips */
-    .gl-quick-replies {
-      display: flex;
-      flex-direction: column;
+    .gl-confirmation svg {
+      width: 18px;
+      height: 18px;
+      color: #059669;
+      flex-shrink: 0;
+    }
+
+    /* ─── Tour Button ─── */
+    .gl-tour-btn {
+      display: inline-flex;
+      align-items: center;
       gap: 8px;
-      padding: 0 16px;
+      padding: 10px 18px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-full);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: inherit;
       margin-top: 8px;
     }
 
-    .gl-chip {
-      background-color: white;
-      border: 1px solid var(--border-color);
-      padding: 10px 12px;
-      border-radius: 20px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: left;
-      color: var(--text-dark);
+    .gl-tour-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .gl-tour-btn:active { transform: scale(0.97); }
+
+    .gl-tour-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
     }
 
-    .gl-chip:hover {
-      background-color: var(--secondary-color);
-      border-color: var(--brand-color);
-    }
-
-    .gl-chip:active {
-      transform: scale(0.98);
-    }
-
-    /* Input Area */
-    .gl-input-area {
-      padding: 12px 16px;
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      gap: 8px;
-      background-color: white;
-      border-radius: 0 0 12px 12px;
-      flex-shrink: 0;
-    }
-
-    .gl-input-wrapper {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      background-color: var(--input-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 24px;
-      padding: 0 14px;
-    }
-
-    .gl-input-wrapper input {
-      flex: 1;
-      border: none;
-      background: transparent;
-      padding: 10px 0;
-      font-size: 14px;
-      font-family: inherit;
-      color: var(--text-dark);
-      outline: none;
-    }
-
-    .gl-input-wrapper input::placeholder {
-      color: var(--text-light);
-    }
-
-    .gl-input-wrapper input:focus {
-      outline: none;
-    }
-
-    .gl-send-btn {
-      background-color: var(--brand-color);
-      color: white;
-      border: none;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      padding: 0;
-      flex-shrink: 0;
-    }
-
-    .gl-send-btn:hover {
-      background-color: var(--brand-color-hover);
-      transform: scale(1.05);
-    }
-
-    .gl-send-btn:active {
-      transform: scale(0.95);
-    }
-
-    .gl-send-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .gl-send-icon {
-      width: 18px;
-      height: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Footer Attribution */
-    .gl-footer-attribution {
-      text-align: center;
-      font-size: 11px;
-      color: var(--text-light);
-      padding: 8px 0 0 0;
-      margin-top: auto;
-    }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-      .gl-widget-container {
+    /* ─── Responsive ─── */
+    @media (max-width: 480px) {
+      .gl-widget-root {
         bottom: 0;
         right: 0;
         left: 0;
       }
 
-      .gl-widget-container[data-position="left"] {
+      .gl-widget-root[data-position="left"] {
         left: 0;
         right: 0;
       }
 
-      .gl-chat-window {
+      .gl-window {
         position: fixed;
+        top: 0;
         bottom: 0;
-        right: 0;
         left: 0;
-        max-width: none;
-        height: 100vh;
+        right: 0;
+        width: 100%;
+        height: 100%;
         border-radius: 0;
-        animation: slideUpFull 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: window-enter-mobile 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
-      .gl-launcher.open {
-        display: none;
+      @keyframes window-enter-mobile {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
       }
 
-      @keyframes slideUpFull {
-        from {
-          opacity: 0;
-          transform: translateY(100%);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
+      .gl-launcher.hide { display: none; }
     }
   `;
 
-  const template = `
-    <div class="gl-widget-container">
-      <button class="gl-launcher" aria-label="Open chat">
-        <div class="gl-launcher-badge"></div>
-        <div class="gl-launcher-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-          </svg>
-        </div>
-      </button>
+  const chatIcon = '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+  const sendIcon = '<svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>';
+  const personIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+  const checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+  const calendarIcon = '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
 
-      <div class="gl-chat-window">
-        <div class="gl-chat-header">
-          <div class="gl-chat-header-content">
-            <div class="gl-chat-header-title">Chat with us</div>
-            <div class="gl-chat-header-subtitle">We're here to help</div>
+  const html = `
+    <div class="gl-widget-root">
+      <button class="gl-launcher" aria-label="Open chat">${chatIcon}</button>
+      <div class="gl-window">
+        <div class="gl-header">
+          <div class="gl-header-avatar">${personIcon}</div>
+          <div class="gl-header-info">
+            <div class="gl-header-name">Community Advisor</div>
+            <div class="gl-header-status">Online now</div>
           </div>
-          <button class="gl-chat-close-btn" aria-label="Close chat">×</button>
+          <button class="gl-close" aria-label="Close chat">&times;</button>
         </div>
-
-        <div class="gl-messages-container"></div>
-
+        <div class="gl-messages"></div>
         <div class="gl-quick-replies"></div>
-
         <div class="gl-input-area">
-          <div class="gl-input-wrapper">
-            <input type="text" placeholder="Type your message..." />
+          <div class="gl-input-wrap">
+            <input type="text" placeholder="Ask me anything..." autocomplete="off" />
           </div>
-          <button class="gl-send-btn" aria-label="Send message" disabled>
-            <div class="gl-send-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                <path d="M16.6915026,12.4744748 L3.50612381,13.2599618 C3.19218622,13.2599618 3.03521743,13.4170592 3.03521743,13.5741566 L1.15159189,20.0151496 C0.8376543,20.8006365 0.99,21.89 1.77946707,22.52 C2.40337463,22.99 3.50612381,23.1 4.13003138,22.8429026 L21.714504,14.0454487 C22.6563168,13.5741566 23.1272231,12.6315722 22.9702544,11.6889879 L4.13003138,1.16865969 C3.34915502,0.9115623 2.40337463,1.0218159 1.77946707,1.4930505 C0.994589706,2.13399899 0.837620913,3.0765833 1.15159189,3.68229181 L3.03521743,10.1232844 C3.03521743,10.2305521 3.19218622,10.4872181 3.50612381,10.4872181 L16.6915026,11.2727017 C16.6915026,11.2727017 17.1624089,11.2727017 17.1624089,11.8784102 L17.1624089,12.0355075 C17.1624089,12.641216 16.6915026,12.4744748 16.6915026,12.4744748 Z"/>
-              </svg>
-            </div>
-          </button>
+          <button class="gl-send-btn" aria-label="Send" disabled>${sendIcon}</button>
         </div>
-
-        <div class="gl-footer-attribution">Powered by Great Lakes Management</div>
+        <div class="gl-footer">Powered by <a href="https://greatlakesmc.com" target="_blank" rel="noopener">Great Lakes Management</a></div>
       </div>
     </div>
   `;
@@ -628,439 +650,338 @@
       this.messages = [];
       this.leadData = {};
       this.isOpen = false;
-      this.isWaitingForResponse = false;
+      this.waiting = false;
+      this.contactFormShown = false;
     }
 
     connectedCallback() {
-      // Parse config from attribute
-      const configAttr = this.getAttribute('config');
-      if (configAttr) {
-        try {
-          this.config = JSON.parse(configAttr);
-        } catch (e) {
-          console.warn('[GL Chat] Failed to parse config attribute:', e);
-          this.config = {};
-        }
+      // Parse config
+      const attr = this.getAttribute('config');
+      if (attr) {
+        try { this.config = JSON.parse(attr); } catch(e) { this.config = {}; }
       }
 
-      // Merge with defaults
+      // Defaults
       this.config = {
         communityId: '',
         communityName: 'Senior Living Community',
-        advisorName: 'Advisor',
-        brandColor: '#2c5f7f',
-        brandColorHover: '#1e4a5f',
-        secondaryColor: '#f5f5f5',
-        accentColor: '#ff6b35',
+        advisorName: 'Community Advisor',
+        brandColor: '#003c4c',
+        brandColorHover: '#007098',
+        accentColor: '#a61c3b',
         phoneNumber: '',
         careTypes: [],
-        amenities: [],
-        greeting: 'Hello! How can we help you today?',
+        greeting: '',
         apiEndpoint: window.location.origin,
         position: 'right',
         autoOpen: false,
         ...this.config
       };
 
-      // Render template
+      // Render
       const styleEl = document.createElement('style');
       styleEl.textContent = style;
       this.shadowRoot.appendChild(styleEl);
+      const tpl = document.createElement('template');
+      tpl.innerHTML = html;
+      this.shadowRoot.appendChild(tpl.content.cloneNode(true));
 
-      const templateEl = document.createElement('template');
-      templateEl.innerHTML = template;
-      this.shadowRoot.appendChild(templateEl.content.cloneNode(true));
+      // Apply custom colors
+      const host = this.shadowRoot.host;
+      host.style.setProperty('--primary', this.config.brandColor || '#003c4c');
+      host.style.setProperty('--primary-light', this.config.brandColorHover || '#007098');
+      if (this.config.accentColor) host.style.setProperty('--accent', this.config.accentColor);
 
-      // Set CSS variables
-      this.shadowRoot.host.style.setProperty('--brand-color', this.config.brandColor);
-      this.shadowRoot.host.style.setProperty('--brand-color-hover', this.config.brandColorHover);
-      this.shadowRoot.host.style.setProperty('--secondary-color', this.config.secondaryColor);
-      this.shadowRoot.host.style.setProperty('--accent-color', this.config.accentColor);
+      // Position
+      const root = this.shadowRoot.querySelector('.gl-widget-root');
+      if (this.config.position === 'left') root.setAttribute('data-position', 'left');
 
-      // Update header
-      const headerTitle = this.shadowRoot.querySelector('.gl-chat-header-title');
-      if (headerTitle) {
-        headerTitle.textContent = this.config.communityName;
+      // Header
+      const headerName = this.shadowRoot.querySelector('.gl-header-name');
+      if (headerName) headerName.textContent = this.config.communityName || 'Community Advisor';
+
+      // Events
+      this._bindEvents();
+
+      // Greeting
+      const name = this.config.communityName || 'our community';
+      const greeting = this.config.greeting ||
+        ("Welcome! I'm your personal advisor for " + name + ". I can answer questions about our living options, amenities, pricing, and help you schedule a tour. How can I help you today?");
+      this.addMessage({ role: 'ai', content: greeting });
+
+      // Quick replies
+      this._renderChips();
+
+      // Auto-open
+      if (this.config.autoOpen) {
+        setTimeout(() => this.open(), 4000);
       }
+    }
 
-      const headerSubtitle = this.shadowRoot.querySelector('.gl-chat-header-subtitle');
-      if (headerSubtitle && this.config.advisorName) {
-        headerSubtitle.textContent = 'Chat with ' + this.config.advisorName;
-      }
+    _bindEvents() {
+      const launcher = this.shadowRoot.querySelector('.gl-launcher');
+      const close = this.shadowRoot.querySelector('.gl-close');
+      const send = this.shadowRoot.querySelector('.gl-send-btn');
+      const input = this.shadowRoot.querySelector('.gl-input-wrap input');
 
-      // Wire up event listeners
-      this.setupEventListeners();
+      launcher.addEventListener('click', () => this.open());
+      close.addEventListener('click', () => this.close());
+      send.addEventListener('click', () => this.sendMessage());
 
-      // Show greeting message
-      this.addMessage({
-        role: 'ai',
-        content: this.config.greeting || 'Hello! How can we help you today?'
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          this.sendMessage();
+        }
       });
 
-      // Render quick reply chips
-      this.renderQuickReplies();
-
-      // Auto-open if configured
-      if (this.config.autoOpen) {
-        setTimeout(() => this.openChat(), 5000);
-      }
+      input.addEventListener('input', () => {
+        send.disabled = !input.value.trim() || this.waiting;
+      });
     }
 
-    setupEventListeners() {
-      const launcher = this.shadowRoot.querySelector('.gl-launcher');
-      const closeBtn = this.shadowRoot.querySelector('.gl-chat-close-btn');
-      const sendBtn = this.shadowRoot.querySelector('.gl-send-btn');
-      const input = this.shadowRoot.querySelector('.gl-input-wrapper input');
-
-      if (launcher) {
-        launcher.addEventListener('click', () => this.openChat());
-      }
-
-      if (closeBtn) {
-        closeBtn.addEventListener('click', () => this.closeChat());
-      }
-
-      if (sendBtn) {
-        sendBtn.addEventListener('click', () => this.sendMessage());
-      }
-
-      if (input) {
-        input.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            this.sendMessage();
-          }
-        });
-
-        input.addEventListener('input', () => {
-          const hasText = input.value.trim().length > 0;
-          sendBtn.disabled = !hasText || this.isWaitingForResponse;
-        });
-      }
-    }
-
-    openChat() {
+    open() {
       this.isOpen = true;
-      const chatWindow = this.shadowRoot.querySelector('.gl-chat-window');
-      const launcher = this.shadowRoot.querySelector('.gl-launcher');
-
-      if (chatWindow) chatWindow.classList.add('open');
-      if (launcher) launcher.classList.add('open');
-
-      // Focus input
-      const input = this.shadowRoot.querySelector('.gl-input-wrapper input');
-      if (input) {
-        setTimeout(() => input.focus(), 100);
-      }
+      this.shadowRoot.querySelector('.gl-window').classList.add('open');
+      this.shadowRoot.querySelector('.gl-launcher').classList.add('hide');
+      const input = this.shadowRoot.querySelector('.gl-input-wrap input');
+      if (input) setTimeout(() => input.focus(), 150);
     }
 
-    closeChat() {
+    close() {
       this.isOpen = false;
-      const chatWindow = this.shadowRoot.querySelector('.gl-chat-window');
-      const launcher = this.shadowRoot.querySelector('.gl-launcher');
+      this.shadowRoot.querySelector('.gl-window').classList.remove('open');
+      this.shadowRoot.querySelector('.gl-launcher').classList.remove('hide');
+    }
 
-      if (chatWindow) chatWindow.classList.remove('open');
-      if (launcher) launcher.classList.remove('open');
+    _time() {
+      const d = new Date();
+      let h = d.getHours(), m = d.getMinutes();
+      const ap = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return h + ':' + (m < 10 ? '0' : '') + m + ' ' + ap;
     }
 
     addMessage(msg) {
       this.messages.push(msg);
+      const container = this.shadowRoot.querySelector('.gl-messages');
+      if (!container) return;
 
-      const messagesContainer = this.shadowRoot.querySelector('.gl-messages-container');
-      if (!messagesContainer) return;
-
-      const messageEl = document.createElement('div');
-      messageEl.className = 'gl-message ' + msg.role;
+      const el = document.createElement('div');
+      el.className = 'gl-msg ' + msg.role;
 
       if (msg.html) {
-        const bubbleEl = document.createElement('div');
-        bubbleEl.className = 'gl-message-bubble';
-        bubbleEl.innerHTML = msg.html;
-        messageEl.appendChild(bubbleEl);
-      } else {
-        const bubbleEl = document.createElement('div');
-        bubbleEl.className = 'gl-message-bubble';
-        bubbleEl.textContent = msg.content;
-        messageEl.appendChild(bubbleEl);
+        const bubble = document.createElement('div');
+        bubble.className = 'gl-bubble';
+        bubble.innerHTML = msg.html;
+        el.appendChild(bubble);
+      } else if (msg.content) {
+        const bubble = document.createElement('div');
+        bubble.className = 'gl-bubble';
+        bubble.textContent = msg.content;
+        el.appendChild(bubble);
       }
 
-      messagesContainer.appendChild(messageEl);
+      const time = document.createElement('div');
+      time.className = 'gl-msg-time';
+      time.textContent = this._time();
+      el.appendChild(time);
 
-      // Auto-scroll to bottom
-      setTimeout(() => {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      }, 0);
+      container.appendChild(el);
+      requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
     }
 
-    addTypingIndicator() {
-      const messagesContainer = this.shadowRoot.querySelector('.gl-messages-container');
-      if (!messagesContainer) return;
-
-      const typingEl = document.createElement('div');
-      typingEl.className = 'gl-message ai';
-      typingEl.innerHTML = `
-        <div class="gl-typing-indicator">
-          <div class="gl-typing-dot"></div>
-          <div class="gl-typing-dot"></div>
-          <div class="gl-typing-dot"></div>
-        </div>
-      `;
-      typingEl.id = 'typing-indicator';
-      messagesContainer.appendChild(typingEl);
-
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    _showTyping() {
+      const container = this.shadowRoot.querySelector('.gl-messages');
+      const el = document.createElement('div');
+      el.className = 'gl-msg ai';
+      el.id = 'gl-typing';
+      el.innerHTML = '<div class="gl-typing"><div class="gl-dot"></div><div class="gl-dot"></div><div class="gl-dot"></div></div>';
+      container.appendChild(el);
+      requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
     }
 
-    removeTypingIndicator() {
-      const typingEl = this.shadowRoot.getElementById('typing-indicator');
-      if (typingEl) {
-        typingEl.remove();
-      }
+    _hideTyping() {
+      const el = this.shadowRoot.getElementById('gl-typing');
+      if (el) el.remove();
     }
 
     sendMessage() {
-      const input = this.shadowRoot.querySelector('.gl-input-wrapper input');
-      if (!input) return;
+      const input = this.shadowRoot.querySelector('.gl-input-wrap input');
+      const text = input.value.trim();
+      if (!text || this.waiting) return;
 
-      const userMessage = input.value.trim();
-      if (!userMessage) return;
-
-      // Add user message
-      this.addMessage({
-        role: 'user',
-        content: userMessage
-      });
-
+      this.addMessage({ role: 'user', content: text });
       input.value = '';
-      const sendBtn = this.shadowRoot.querySelector('.gl-send-btn');
-      if (sendBtn) sendBtn.disabled = true;
+      this.shadowRoot.querySelector('.gl-send-btn').disabled = true;
 
-      // Hide quick replies
-      const quickReplies = this.shadowRoot.querySelector('.gl-quick-replies');
-      if (quickReplies) quickReplies.style.display = 'none';
+      // Hide quick replies after first message
+      const chips = this.shadowRoot.querySelector('.gl-quick-replies');
+      if (chips) chips.style.display = 'none';
 
-      // Show typing indicator and send to API
-      this.isWaitingForResponse = true;
-      this.addTypingIndicator();
-
-      this.callChatAPI(userMessage);
+      this.waiting = true;
+      this._showTyping();
+      this._callAPI(text);
     }
 
-    callChatAPI(userMessage) {
+    _callAPI(text) {
       const endpoint = this.config.apiEndpoint + '/api/chat';
-      const body = JSON.stringify({
+      const payload = {
         communityId: this.config.communityId,
-        messages: this.messages.map((m) => ({
-          role: m.role,
-          content: m.content
-        })),
+        messages: this.messages
+          .filter(m => m.content)
+          .slice(1) // skip greeting
+          .map(m => ({
+            role: m.role === 'ai' ? 'assistant' : 'user',
+            content: m.content
+          })),
         leadData: this.leadData
-      });
+      };
 
       const xhr = new XMLHttpRequest();
       xhr.open('POST', endpoint);
       xhr.setRequestHeader('Content-Type', 'application/json');
 
       xhr.onload = () => {
-        this.removeTypingIndicator();
+        this._hideTyping();
+        this.waiting = false;
 
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
             const data = JSON.parse(xhr.responseText);
-            const aiResponse = data.response || 'I apologize, but I could not process that request.';
+            const text = data.response || "I'm sorry, I couldn't process that. Could you rephrase?";
+            this.addMessage({ role: 'ai', content: text });
 
-            this.addMessage({
-              role: 'ai',
-              content: aiResponse
-            });
-
-            // Check for suggested actions
+            // Handle actions
             if (data.suggestedActions && data.suggestedActions.length > 0) {
-              this.handleSuggestedActions(data.suggestedActions);
+              this._handleActions(data.suggestedActions);
             }
-          } catch (e) {
-            console.error('[GL Chat] Failed to parse API response:', e);
-            this.addMessage({
-              role: 'ai',
-              content: 'Sorry, something went wrong. Please try again.'
-            });
+          } catch(e) {
+            this.addMessage({ role: 'ai', content: "Sorry, something went wrong. Please try again." });
           }
         } else {
-          console.error('[GL Chat] API error:', xhr.status);
-          this.addMessage({
-            role: 'ai',
-            content: 'Sorry, I encountered an error. Please try again later.'
-          });
+          this.addMessage({ role: 'ai', content: "I'm having trouble connecting right now. Please try again in a moment." });
         }
 
-        this.isWaitingForResponse = false;
         const sendBtn = this.shadowRoot.querySelector('.gl-send-btn');
-        const input = this.shadowRoot.querySelector('.gl-input-wrapper input');
-        if (sendBtn) sendBtn.disabled = !input || input.value.trim().length === 0;
+        const input = this.shadowRoot.querySelector('.gl-input-wrap input');
+        if (sendBtn) sendBtn.disabled = !input || !input.value.trim();
       };
 
       xhr.onerror = () => {
-        this.removeTypingIndicator();
-        console.error('[GL Chat] Network error');
-        this.addMessage({
-          role: 'ai',
-          content: 'Sorry, I lost connection. Please try again.'
-        });
-        this.isWaitingForResponse = false;
+        this._hideTyping();
+        this.waiting = false;
+        this.addMessage({ role: 'ai', content: "I lost my connection. Please try again." });
         const sendBtn = this.shadowRoot.querySelector('.gl-send-btn');
         if (sendBtn) sendBtn.disabled = false;
       };
 
-      xhr.send(body);
+      xhr.send(JSON.stringify(payload));
     }
 
-    handleSuggestedActions(actions) {
-      if (actions.includes('pricing_info')) {
-        this.showPricingCard();
-      }
+    _handleActions(actions) {
       if (actions.includes('schedule_tour')) {
-        this.showTourButton();
+        this._showTourButton();
       }
-      if (actions.includes('provide_contact')) {
-        this.showContactForm();
+      if (actions.includes('provide_contact') && !this.contactFormShown) {
+        this._showContactForm();
+      }
+      if (actions.includes('pricing_info')) {
+        this._showPricing();
       }
     }
 
-    showPricingCard() {
-      if (!this.config.careTypes || this.config.careTypes.length === 0) {
-        return;
-      }
+    _showPricing() {
+      if (!this.config.careTypes || this.config.careTypes.length === 0) return;
 
-      let html = '<div class="gl-pricing-card"><div class="gl-pricing-card-title">Pricing Options</div>';
-
-      this.config.careTypes.forEach((ct) => {
+      let rows = '';
+      this.config.careTypes.forEach(ct => {
         const price = ct.startingAt
           ? '$' + parseInt(ct.startingAt).toLocaleString() + '/mo'
           : 'Contact us';
-        html += `
-          <div class="gl-pricing-item">
-            <span class="gl-pricing-name">${ct.name}</span>
-            <span class="gl-pricing-price">Starting at ${price}</span>
-          </div>
-        `;
+        rows += '<div class="gl-pricing-item"><span class="gl-pricing-name">' + this._escHtml(ct.name) +
+          '</span><span class="gl-pricing-price">From ' + price + '</span></div>';
       });
-
-      html += '</div>';
 
       this.addMessage({
         role: 'ai',
-        html: html
+        html: '<div class="gl-pricing-card"><div class="gl-pricing-card-title">Care Options & Starting Prices</div>' + rows + '</div>'
       });
     }
 
-    showTourButton() {
+    _showTourButton() {
       this.addMessage({
         role: 'ai',
-        html: `
-          <button class="gl-chip" style="border: none; background-color: var(--brand-color); color: white; font-weight: 600; cursor: pointer; padding: 12px 16px;">
-            Schedule a Tour
-          </button>
-        `
+        html: '<button class="gl-tour-btn">' + calendarIcon + ' Schedule a Tour</button>'
       });
 
-      // Wire up the button (hacky but works in shadow DOM)
       setTimeout(() => {
-        const buttons = this.shadowRoot.querySelectorAll('.gl-chip');
-        const lastBtn = buttons[buttons.length - 1];
-        if (lastBtn) {
-          lastBtn.addEventListener('click', () => {
-            this.addMessage({
-              role: 'user',
-              content: 'I would like to schedule a tour'
-            });
-            this.callChatAPI('I would like to schedule a tour');
+        const btns = this.shadowRoot.querySelectorAll('.gl-tour-btn');
+        const btn = btns[btns.length - 1];
+        if (btn) {
+          btn.addEventListener('click', () => {
+            if (!this.contactFormShown) {
+              this.addMessage({ role: 'user', content: "I'd like to schedule a tour" });
+              this._showContactForm();
+            }
           });
         }
       }, 0);
     }
 
-    showContactForm() {
-      const formHtml = `
-        <div class="gl-contact-form">
-          <div class="gl-form-group">
-            <label class="gl-form-label">Name</label>
-            <input type="text" class="gl-form-input contact-name" placeholder="Your name" />
-          </div>
-          <div class="gl-form-group">
-            <label class="gl-form-label">Email</label>
-            <input type="email" class="gl-form-input contact-email" placeholder="your@email.com" />
-          </div>
-          <div class="gl-form-group">
-            <label class="gl-form-label">Phone</label>
-            <input type="tel" class="gl-form-input contact-phone" placeholder="(555) 123-4567" />
-          </div>
-          ${
-            this.config.careTypes && this.config.careTypes.length > 0
-              ? `
-            <div class="gl-form-group">
-              <label class="gl-form-label">Care Type (Optional)</label>
-              <select class="gl-form-select contact-care-type">
-                <option value="">Select care type...</option>
-                ${this.config.careTypes
-                  .map((ct) => `<option value="${ct.name}">${ct.name}</option>`)
-                  .join('')}
-              </select>
-            </div>
-          `
-              : ''
-          }
-          <button class="gl-form-submit contact-submit">Submit</button>
-        </div>
-      `;
+    _showContactForm() {
+      this.contactFormShown = true;
 
-      this.addMessage({
-        role: 'ai',
-        html: formHtml
-      });
+      const careOptions = (this.config.careTypes && this.config.careTypes.length > 0)
+        ? '<div class="gl-form-group"><label class="gl-form-label">Care Type</label><select class="gl-form-select contact-care-type"><option value="">Select care type...</option>' +
+          this.config.careTypes.map(ct => '<option value="' + this._escHtml(ct.name) + '">' + this._escHtml(ct.name) + '</option>').join('') +
+          '</select></div>'
+        : '';
 
-      // Wire up form submission
+      const formHtml = '<div class="gl-contact-form">' +
+        '<div class="gl-contact-form-title">Let us follow up with you</div>' +
+        '<div class="gl-form-group"><label class="gl-form-label">Name</label><input type="text" class="gl-form-input contact-name" placeholder="Your full name" /></div>' +
+        '<div class="gl-form-group"><label class="gl-form-label">Email</label><input type="email" class="gl-form-input contact-email" placeholder="you@email.com" /></div>' +
+        '<div class="gl-form-group"><label class="gl-form-label">Phone</label><input type="tel" class="gl-form-input contact-phone" placeholder="(555) 123-4567" /></div>' +
+        careOptions +
+        '<button class="gl-form-submit contact-submit">Get in Touch</button></div>';
+
+      this.addMessage({ role: 'ai', html: formHtml });
+
       setTimeout(() => {
-        const messagesContainer = this.shadowRoot.querySelector('.gl-messages-container');
-        const lastMessage = messagesContainer.lastElementChild;
-        if (lastMessage) {
-          const submitBtn = lastMessage.querySelector('.contact-submit');
-          if (submitBtn) {
-            submitBtn.addEventListener('click', () => {
-              const nameInput = lastMessage.querySelector('.contact-name');
-              const emailInput = lastMessage.querySelector('.contact-email');
-              const phoneInput = lastMessage.querySelector('.contact-phone');
-              const careTypeSelect = lastMessage.querySelector('.contact-care-type');
+        const container = this.shadowRoot.querySelector('.gl-messages');
+        const lastMsg = container.lastElementChild;
+        if (!lastMsg) return;
+        const btn = lastMsg.querySelector('.contact-submit');
+        if (btn) {
+          btn.addEventListener('click', () => {
+            const name = (lastMsg.querySelector('.contact-name') || {}).value || '';
+            const email = (lastMsg.querySelector('.contact-email') || {}).value || '';
+            const phone = (lastMsg.querySelector('.contact-phone') || {}).value || '';
+            const careType = (lastMsg.querySelector('.contact-care-type') || {}).value || '';
 
-              const name = nameInput ? nameInput.value.trim() : '';
-              const email = emailInput ? emailInput.value.trim() : '';
-              const phone = phoneInput ? phoneInput.value.trim() : '';
-              const careType = careTypeSelect ? careTypeSelect.value : '';
+            if (!name.trim() || !email.trim()) {
+              // Minimal inline validation
+              if (!name.trim()) lastMsg.querySelector('.contact-name').style.borderColor = '#ef4444';
+              if (!email.trim()) lastMsg.querySelector('.contact-email').style.borderColor = '#ef4444';
+              return;
+            }
 
-              if (name && email && phone) {
-                this.submitLead({
-                  name,
-                  email,
-                  phone,
-                  care_type: careType
-                });
-              } else {
-                alert('Please fill in all required fields');
-              }
-            });
-          }
+            this._submitLead({ name: name.trim(), email: email.trim(), phone: phone.trim(), care_type: careType });
+          });
         }
       }, 0);
     }
 
-    submitLead(leadInfo) {
+    _submitLead(info) {
       const endpoint = this.config.apiEndpoint + '/api/leads';
       const body = JSON.stringify({
         community: this.config.communityId,
         community_name: this.config.communityName,
-        name: leadInfo.name,
-        email: leadInfo.email,
-        phone: leadInfo.phone,
-        care_type: leadInfo.care_type,
+        name: info.name,
+        email: info.email,
+        phone: info.phone,
+        care_type: info.care_type,
         source: 'chat_widget'
       });
 
@@ -1072,65 +993,56 @@
         if (xhr.status >= 200 && xhr.status < 300) {
           this.addMessage({
             role: 'ai',
-            html: '<div class="gl-confirmation-message">Thank you! We\'ve received your information. A member of our team will reach out shortly.</div>'
+            html: '<div class="gl-confirmation">' + checkIcon + '<span>Thank you, ' + this._escHtml(info.name.split(' ')[0]) + '! A member of our team will be in touch soon.</span></div>'
           });
-
-          // Update lead data for future messages
-          this.leadData = {
-            name: leadInfo.name,
-            email: leadInfo.email,
-            phone: leadInfo.phone,
-            care_type: leadInfo.care_type
-          };
+          this.leadData = { name: info.name, email: info.email, phone: info.phone, care_type: info.care_type };
         } else {
-          this.addMessage({
-            role: 'ai',
-            content: 'Sorry, there was an error submitting your information. Please try again.'
-          });
+          this.addMessage({ role: 'ai', content: "Sorry, there was an error. Please try again." });
+          this.contactFormShown = false;
         }
       };
 
       xhr.onerror = () => {
-        console.error('[GL Chat] Failed to submit lead');
-        this.addMessage({
-          role: 'ai',
-          content: 'Sorry, I lost connection. Please try again.'
-        });
+        this.addMessage({ role: 'ai', content: "Connection lost. Please try again." });
+        this.contactFormShown = false;
       };
 
       xhr.send(body);
     }
 
-    renderQuickReplies() {
-      const quickReplies = this.shadowRoot.querySelector('.gl-quick-replies');
-      if (!quickReplies) return;
+    _renderChips() {
+      const container = this.shadowRoot.querySelector('.gl-quick-replies');
+      if (!container) return;
 
       const suggestions = [
-        'What are the pricing options?',
-        'Can I schedule a tour?',
-        'What amenities do you offer?',
-        'Tell me about dining'
+        'Pricing & care options',
+        'Schedule a tour',
+        'Amenities & dining',
+        'What\u2019s included?'
       ];
 
-      suggestions.forEach((text) => {
+      suggestions.forEach(text => {
         const chip = document.createElement('button');
         chip.className = 'gl-chip';
         chip.textContent = text;
         chip.addEventListener('click', () => {
-          const input = this.shadowRoot.querySelector('.gl-input-wrapper input');
+          const input = this.shadowRoot.querySelector('.gl-input-wrap input');
           if (input) {
             input.value = text;
-            input.focus();
-            const sendBtn = this.shadowRoot.querySelector('.gl-send-btn');
-            if (sendBtn) sendBtn.disabled = false;
+            this.shadowRoot.querySelector('.gl-send-btn').disabled = false;
             this.sendMessage();
           }
         });
-        quickReplies.appendChild(chip);
+        container.appendChild(chip);
       });
+    }
+
+    _escHtml(s) {
+      const div = document.createElement('div');
+      div.textContent = s || '';
+      return div.innerHTML;
     }
   }
 
-  // Register the custom element
   customElements.define('gl-chat', GLChat);
 })();
