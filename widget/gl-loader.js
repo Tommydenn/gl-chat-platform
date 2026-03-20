@@ -9,7 +9,7 @@
  * The loader fetches community config from the API, loads the widget JS,
  * and injects the <gl-chat> element with the config.
  *
- * Optional data attributes (override API config):
+ * Attributes:
  *   data-community-id   — Required. Community UUID or slug.
  *   data-api             — API base URL (default: same origin)
  *   data-position        — "right" or "left"
@@ -22,9 +22,14 @@
   if (!script) return;
 
   var communityId = script.getAttribute("data-community-id");
-  var apiBase = script.getAttribute("data-api") || "";
+  var apiBase = script.getAttribute("data-api") || window.location.origin;
   var position = script.getAttribute("data-position");
   var autoOpen = script.getAttribute("data-auto-open") === "true";
+
+  // Normalize apiBase: remove trailing slash
+  if (apiBase.endsWith("/")) {
+    apiBase = apiBase.slice(0, -1);
+  }
 
   // Resolve widget.js path (same directory as loader)
   var widgetSrc = script.src.replace(/gl-loader\.js(\?.*)?$/, "gl-widget.js");
@@ -38,7 +43,8 @@
       // Merge overrides
       if (position) config.position = position;
       if (autoOpen) config.autoOpen = true;
-      config.apiEndpoint = apiBase + "/api/leads";
+      // Set apiEndpoint to the base URL (not the /api/leads endpoint)
+      config.apiEndpoint = apiBase;
 
       el.setAttribute("config", JSON.stringify(config));
       document.body.appendChild(el);

@@ -1350,7 +1350,7 @@
             })
             .then(r => r.json())
             .then(data => {
-                leads = data || [];
+                leads = (data && data.leads) ? data.leads : (Array.isArray(data) ? data : []);
                 renderLeads();
                 updateStats();
             })
@@ -1364,7 +1364,7 @@
             })
             .then(r => r.json())
             .then(data => {
-                communities = data || [];
+                communities = (data && data.communities) ? data.communities : (Array.isArray(data) ? data : []);
                 renderCommunities();
                 updateStats();
             })
