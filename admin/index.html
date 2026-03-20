@@ -1,512 +1,1674 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Great Lakes Management — Admin Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-  <style>
-    :root { --brand:#2E5339; --brand-h:#1e3a27; --sec:#3A4856; --accent:#4F8636; --bg:#f5f6f8; --card:#fff; --border:#e5e7eb; --text:#1f2937; --muted:#6b7280; --red:#ef4444; --green:#22c55e; --blue:#3b82f6; }
-    * { box-sizing:border-box; margin:0; padding:0; }
-    body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GLM Admin Dashboard - Chat Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&family=Source+Serif+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* ── LOGIN ── */
-    .login-wrap { display:flex; align-items:center; justify-content:center; min-height:100vh; }
-    .login-box { background:var(--card); padding:40px; border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,0.08); width:380px; max-width:90vw; }
-    .login-box h1 { font-size:22px; color:var(--brand); margin-bottom:6px; }
-    .login-box p { color:var(--muted); font-size:14px; margin-bottom:24px; }
-    .login-box label { display:block; font-size:13px; font-weight:500; color:var(--sec); margin-bottom:5px; }
-    .login-box input { width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:8px; font-size:14px; margin-bottom:16px; outline:none; transition:border-color .2s; }
-    .login-box input:focus { border-color:var(--brand); }
-    .login-box button { width:100%; padding:12px; background:var(--brand); color:#fff; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; transition:background .15s; }
-    .login-box button:hover { background:var(--brand-h); }
-    .login-err { color:var(--red); font-size:13px; margin-bottom:12px; }
+        body {
+            font-family: 'Source Serif Pro', serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
 
-    /* ── NAV ── */
-    .nav { background:var(--brand); color:#fff; padding:12px 32px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
-    .nav h1 { font-size:18px; font-weight:700; }
-    .nav-links { display:flex; gap:8px; }
-    .nav-links button { background:rgba(255,255,255,0.15); border:none; color:#fff; padding:8px 16px; border-radius:6px; font-size:13px; font-weight:500; cursor:pointer; transition:background .15s; font-family:inherit; }
-    .nav-links button:hover,.nav-links button.active { background:rgba(255,255,255,0.28); }
-    .nav-right { display:flex; align-items:center; gap:12px; }
-    .nav-right button { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:8px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-family:inherit; }
+        /* ============ LOGIN PAGE ============ */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #003c4c 0%, #007098 100%);
+            position: relative;
+            overflow: hidden;
+        }
 
-    /* ── LAYOUT ── */
-    .main { max-width:1200px; margin:0 auto; padding:24px; }
-    .page { display:none; } .page.active { display:block; }
+        .login-container::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background-image:
+                radial-gradient(circle at 30% 50%, rgba(189, 204, 214, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 70% 70%, rgba(189, 204, 214, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(189, 204, 214, 0.2) 0%, transparent 50%);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+            top: -100px;
+            right: -100px;
+        }
 
-    /* ── STATS ── */
-    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:24px; }
-    .stat-card { background:var(--card); border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
-    .stat-card .label { font-size:12px; color:var(--muted); font-weight:500; text-transform:uppercase; letter-spacing:.5px; }
-    .stat-card .value { font-size:28px; font-weight:700; color:var(--brand); margin-top:4px; }
-    .stat-card .sub { font-size:12px; color:var(--muted); margin-top:2px; }
+        .login-container::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background-image:
+                radial-gradient(circle at 30% 50%, rgba(189, 204, 214, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 70% 70%, rgba(189, 204, 214, 0.2) 0%, transparent 50%);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite reverse;
+            bottom: -150px;
+            left: -150px;
+        }
 
-    /* ── TABLE ── */
-    .card { background:var(--card); border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.04); overflow:hidden; margin-bottom:24px; }
-    .card-hdr { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
-    .card-hdr h2 { font-size:16px; font-weight:600; }
-    table { width:100%; border-collapse:collapse; font-size:13.5px; }
-    th { text-align:left; padding:10px 16px; font-weight:600; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.5px; background:#fafbfc; border-bottom:1px solid var(--border); }
-    td { padding:10px 16px; border-bottom:1px solid var(--border); vertical-align:middle; }
-    tr:last-child td { border-bottom:none; }
-    tr:hover td { background:#f9fafb; }
-    .badge { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; }
-    .badge-new { background:#dcfce7; color:#166534; }
-    .badge-contacted { background:#dbeafe; color:#1e40af; }
-    .badge-tour { background:#fef3c7; color:#92400e; }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, 20px); }
+        }
 
-    /* ── FORM ── */
-    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-    .form-group { margin-bottom:16px; }
-    .form-group label { display:block; font-size:13px; font-weight:500; color:var(--sec); margin-bottom:5px; }
-    .form-group input, .form-group select, .form-group textarea { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:14px; font-family:inherit; outline:none; transition:border-color .2s; }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--brand); }
-    .form-group.full { grid-column:1/-1; }
-    .btn { padding:10px 20px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; border:none; transition:all .15s; font-family:inherit; }
-    .btn-primary { background:var(--brand); color:#fff; } .btn-primary:hover { background:var(--brand-h); }
-    .btn-secondary { background:var(--bg); color:var(--sec); border:1px solid var(--border); } .btn-secondary:hover { background:#e5e7eb; }
-    .btn-danger { background:var(--red); color:#fff; } .btn-danger:hover { opacity:.9; }
-    .btn-sm { padding:6px 12px; font-size:12px; }
-    .actions { display:flex; gap:8px; margin-top:16px; }
+        .login-box {
+            background: white;
+            padding: 60px 40px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 420px;
+            position: relative;
+            z-index: 1;
+        }
 
-    /* ── WIDGET EMBED CODE ── */
-    .embed-box { background:#1e293b; color:#e2e8f0; padding:16px; border-radius:8px; font-family:'Courier New',monospace; font-size:12.5px; line-height:1.6; overflow-x:auto; white-space:pre-wrap; word-break:break-all; position:relative; }
-    .embed-box .copy-btn { position:absolute; top:8px; right:8px; background:#475569; color:#fff; border:none; padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer; }
-    .embed-box .copy-btn:hover { background:#64748b; }
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
 
-    /* ── CARE TYPES EDITOR ── */
-    .care-list { list-style:none; }
-    .care-item { display:flex; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
-    .care-item input { flex:1; }
-    .care-item .price-input { width:120px; }
-    .care-item button { background:none; border:none; color:var(--red); cursor:pointer; font-size:18px; padding:4px; }
-    .add-care-btn { margin-top:8px; background:none; border:1.5px dashed var(--border); padding:8px 16px; border-radius:8px; color:var(--muted); cursor:pointer; font-size:13px; width:100%; transition:all .15s; }
-    .add-care-btn:hover { border-color:var(--brand); color:var(--brand); }
+        .login-logo {
+            font-family: 'Roboto', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #003c4c;
+            margin-bottom: 8px;
+        }
 
-    .empty-state { text-align:center; padding:48px 24px; color:var(--muted); }
-    .empty-state p { margin-bottom:16px; }
+        .login-subtitle {
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            color: #666;
+            font-weight: 400;
+        }
 
-    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; z-index:1000; }
-    .modal { background:var(--card); border-radius:16px; padding:32px; max-width:600px; width:90vw; max-height:85vh; overflow-y:auto; }
-    .modal h2 { margin-bottom:20px; font-size:18px; }
-  </style>
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #003c4c;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Source Serif Pro', serif;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #007098;
+            box-shadow: 0 0 0 3px rgba(0, 112, 152, 0.1);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #003c4c 0%, #007098 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 60, 76, 0.3);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-error {
+            color: #a61c3b;
+            font-size: 13px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        /* ============ MAIN LAYOUT ============ */
+        .app-container {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .app-container.logged-in {
+            display: flex;
+        }
+
+        /* ============ SIDEBAR ============ */
+        .sidebar {
+            width: 260px;
+            background: #003c4c;
+            color: white;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+        }
+
+        .sidebar-logo {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(189, 204, 214, 0.2);
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 24px 12px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(189, 204, 214, 0.1);
+        }
+
+        .nav-item.active {
+            background-color: #007098;
+            color: white;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .sidebar-logout {
+            padding: 20px 12px;
+            border-top: 1px solid rgba(189, 204, 214, 0.2);
+        }
+
+        .logout-button {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: rgba(189, 204, 214, 0.15);
+            color: white;
+            border: 1px solid rgba(189, 204, 214, 0.3);
+            border-radius: 8px;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .logout-button:hover {
+            background-color: rgba(189, 204, 214, 0.25);
+        }
+
+        /* ============ MAIN CONTENT ============ */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            background-color: #f8f9fa;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-header {
+            background: white;
+            padding: 32px 40px;
+            border-bottom: 1px solid #e5e7eb;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            right: -100px;
+            top: -50px;
+            width: 300px;
+            height: 300px;
+            background-image:
+                radial-gradient(circle at 20% 30%, rgba(189, 204, 214, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(189, 204, 214, 0.15) 0%, transparent 50%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .page-title {
+            font-family: 'Roboto', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: #003c4c;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-subtitle {
+            font-family: 'Source Serif Pro', serif;
+            font-size: 15px;
+            color: #666;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-content {
+            padding: 32px 40px;
+        }
+
+        /* ============ OVERVIEW PAGE ============ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-card.gradient {
+            background: linear-gradient(135deg, #003c4c 0%, #007098 100%);
+            color: white;
+        }
+
+        .stat-label {
+            font-family: 'Roboto', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-family: 'Roboto', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .stat-change {
+            font-family: 'Source Serif Pro', serif;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        /* ============ TABLES ============ */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .table-title {
+            font-family: 'Roboto', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #003c4c;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: #f8f9fa;
+        }
+
+        th {
+            text-align: left;
+            padding: 14px 24px;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            font-family: 'Source Serif Pro', serif;
+            font-size: 14px;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: rgba(189, 204, 214, 0.08);
+        }
+
+        tbody tr:hover {
+            background-color: rgba(189, 204, 214, 0.15);
+        }
+
+        /* ============ BADGES ============ */
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-new {
+            background-color: rgba(0, 112, 152, 0.2);
+            color: #007098;
+        }
+
+        .badge-contacted {
+            background-color: rgba(0, 112, 152, 0.15);
+            color: #005f7f;
+        }
+
+        .badge-scheduled {
+            background-color: rgba(166, 28, 59, 0.2);
+            color: #a61c3b;
+        }
+
+        .badge-closed {
+            background-color: rgba(150, 150, 150, 0.2);
+            color: #666;
+        }
+
+        /* ============ BUTTONS ============ */
+        .button {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #003c4c 0%, #007098 100%);
+            color: white;
+        }
+
+        .button-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 60, 76, 0.25);
+        }
+
+        .button-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+
+        .button-secondary:hover {
+            background-color: #e8e8e8;
+        }
+
+        .button-small {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        /* ============ FORMS ============ */
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-title {
+            font-family: 'Roboto', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #003c4c;
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #003c4c;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Source Serif Pro', serif;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'Source Serif Pro', serif;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #007098;
+            box-shadow: 0 0 0 3px rgba(0, 112, 152, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        /* ============ LEADS PAGE ============ */
+        .leads-filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 10px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Source Serif Pro', serif;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #007098;
+            box-shadow: 0 0 0 3px rgba(0, 112, 152, 0.1);
+        }
+
+        /* ============ MODAL ============ */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-family: 'Roboto', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: #003c4c;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #003c4c;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* ============ COMMUNITIES PAGE ============ */
+        .communities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .community-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .community-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .community-name {
+            font-family: 'Roboto', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #003c4c;
+            margin-bottom: 8px;
+        }
+
+        .community-location {
+            font-family: 'Source Serif Pro', serif;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        .community-color {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .community-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .community-actions .button {
+            flex: 1;
+            text-align: center;
+        }
+
+        /* ============ ANALYTICS PAGE ============ */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .analytics-card {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .analytics-card.highlight {
+            background: linear-gradient(135deg, #003c4c 0%, #007098 100%);
+            color: white;
+        }
+
+        .analytics-label {
+            font-family: 'Roboto', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.8;
+            margin-bottom: 12px;
+        }
+
+        .analytics-value {
+            font-family: 'Roboto', sans-serif;
+            font-size: 44px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .analytics-detail {
+            font-family: 'Source Serif Pro', serif;
+            font-size: 13px;
+            opacity: 0.75;
+        }
+
+        .chart-placeholder {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+        }
+
+        .chart-placeholder-content {
+            color: #999;
+            font-family: 'Source Serif Pro', serif;
+        }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+                padding: 0;
+            }
+
+            .sidebar-logo {
+                padding: 16px 8px;
+                font-size: 14px;
+                text-align: center;
+            }
+
+            .nav-item {
+                justify-content: center;
+                padding: 12px 8px;
+            }
+
+            .nav-item span {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 70px;
+            }
+
+            .page-content {
+                padding: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                padding: 20px;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .communities-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                max-width: 95vw;
+            }
+
+            .leads-filters {
+                flex-direction: column;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
+
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 60px;
+            }
+
+            .sidebar-logo {
+                font-size: 12px;
+                padding: 12px 6px;
+            }
+
+            .main-content {
+                margin-left: 60px;
+            }
+
+            .page-content {
+                padding: 16px;
+            }
+
+            .page-title {
+                font-size: 20px;
+            }
+
+            .stat-value {
+                font-size: 28px;
+            }
+
+            .analytics-value {
+                font-size: 32px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 12px 16px;
+            }
+        }
+    </style>
 </head>
 <body>
-
-<!-- ═══════ LOGIN SCREEN ═══════ -->
-<div id="loginScreen" class="login-wrap">
-  <div class="login-box">
-    <h1>Great Lakes Management</h1>
-    <p>Community Assistant — Admin Dashboard</p>
-    <div id="loginErr" class="login-err" style="display:none;"></div>
-    <label>Username</label>
-    <input id="loginUser" type="text" value="admin"/>
-    <label>Password</label>
-    <input id="loginPass" type="password" placeholder="Enter password"/>
-    <button id="loginBtn">Sign In</button>
-  </div>
-</div>
-
-<!-- ═══════ DASHBOARD ═══════ -->
-<div id="dashboard" style="display:none;">
-  <div class="nav">
-    <h1>GL Community Assistant</h1>
-    <div class="nav-links">
-      <button class="active" data-page="overview">Overview</button>
-      <button data-page="leads">Leads</button>
-      <button data-page="communities">Communities</button>
-    </div>
-    <div class="nav-right">
-      <button id="logoutBtn">Logout</button>
-    </div>
-  </div>
-
-  <div class="main">
-
-    <!-- ── OVERVIEW ── -->
-    <div id="page-overview" class="page active">
-      <h2 style="margin-bottom:16px;">Dashboard Overview</h2>
-      <div class="stats-grid" id="statsGrid"></div>
-      <div class="card">
-        <div class="card-hdr"><h2>Recent Leads</h2></div>
-        <table><thead><tr><th>Name</th><th>Community</th><th>Care Type</th><th>Email</th><th>Status</th><th>Date</th></tr></thead>
-        <tbody id="recentLeadsTable"></tbody></table>
-      </div>
-    </div>
-
-    <!-- ── LEADS ── -->
-    <div id="page-leads" class="page">
-      <div class="card">
-        <div class="card-hdr">
-          <h2>All Leads</h2>
-          <div style="display:flex;gap:8px;">
-            <select id="leadFilterCommunity" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;"><option value="">All Communities</option></select>
-            <select id="leadFilterStatus" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;">
-              <option value="">All Statuses</option><option value="new">New</option><option value="contacted">Contacted</option><option value="tour_scheduled">Tour Scheduled</option><option value="closed">Closed</option>
-            </select>
-            <button class="btn btn-secondary btn-sm" id="exportBtn">Export CSV</button>
-          </div>
+    <!-- LOGIN PAGE -->
+    <div class="login-container" id="loginPage">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="login-logo">Great Lakes Management</div>
+                <div class="login-subtitle">Chat Platform Admin</div>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="login-button">Sign In</button>
+                <div class="login-error" id="loginError"></div>
+            </form>
         </div>
-        <table><thead><tr><th>Name</th><th>Community</th><th>Care Type</th><th>Timeline</th><th>Email</th><th>Phone</th><th>Status</th><th>Date</th><th></th></tr></thead>
-        <tbody id="leadsTable"></tbody></table>
-      </div>
     </div>
 
-    <!-- ── COMMUNITIES ── -->
-    <div id="page-communities" class="page">
-      <div class="card">
-        <div class="card-hdr">
-          <h2>Communities</h2>
-          <button class="btn btn-primary btn-sm" id="addCommunityBtn">+ Add Community</button>
+    <!-- MAIN APP -->
+    <div class="app-container" id="appContainer">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-logo">GLM</div>
+            <div class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="overview">
+                    <div class="nav-icon">📊</div>
+                    <span>Overview</span>
+                </a>
+                <a href="#" class="nav-item" data-page="leads">
+                    <div class="nav-icon">👥</div>
+                    <span>Leads</span>
+                </a>
+                <a href="#" class="nav-item" data-page="communities">
+                    <div class="nav-icon">🏢</div>
+                    <span>Communities</span>
+                </a>
+                <a href="#" class="nav-item" data-page="analytics">
+                    <div class="nav-icon">📈</div>
+                    <span>Chat Analytics</span>
+                </a>
+            </div>
+            <div class="sidebar-logout">
+                <button class="logout-button" id="logoutButton">Logout</button>
+            </div>
         </div>
-        <table><thead><tr><th>Community</th><th>Address</th><th>Phone</th><th>Care Types</th><th>Leads</th><th></th></tr></thead>
-        <tbody id="communitiesTable"></tbody></table>
-      </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- OVERVIEW PAGE -->
+            <div class="page active" id="overviewPage">
+                <div class="page-header">
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Welcome back! Here's your performance overview.</p>
+                </div>
+                <div class="page-content">
+                    <div class="stats-grid">
+                        <div class="stat-card gradient">
+                            <div class="stat-label">Total Leads</div>
+                            <div class="stat-value" id="totalLeads">0</div>
+                            <div class="stat-change">↑ 12% from last month</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Communities</div>
+                            <div class="stat-value" id="totalCommunities">0</div>
+                            <div class="stat-change">Active managed communities</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Conversion Rate</div>
+                            <div class="stat-value">14.2%</div>
+                            <div class="stat-change">↓ 2.1% from last month</div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-header">
+                            <div class="table-title">Recent Leads</div>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Contact</th>
+                                    <th>Community</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentLeadsBody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #999;">No leads yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LEADS PAGE -->
+            <div class="page" id="leadsPage">
+                <div class="page-header">
+                    <h1 class="page-title">Leads</h1>
+                    <p class="page-subtitle">Manage and track all incoming leads.</p>
+                </div>
+                <div class="page-content">
+                    <div class="leads-filters">
+                        <select id="statusFilter" class="filter-select">
+                            <option value="">All Statuses</option>
+                            <option value="New">New</option>
+                            <option value="Contacted">Contacted</option>
+                            <option value="Tour Scheduled">Tour Scheduled</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                        <button class="button button-primary" id="exportLeads">
+                            ⬇ Export CSV
+                        </button>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-header">
+                            <div class="table-title">All Leads</div>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Community</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leadsTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: #999;">No leads yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMMUNITIES PAGE -->
+            <div class="page" id="communitiesPage">
+                <div class="page-header">
+                    <h1 class="page-title">Communities</h1>
+                    <p class="page-subtitle">Manage your senior living communities and branding.</p>
+                </div>
+                <div class="page-content">
+                    <button class="button button-primary" id="addCommunityBtn" style="margin-bottom: 24px;">
+                        + Add Community
+                    </button>
+
+                    <div class="communities-grid" id="communitiesGrid">
+                        <div style="grid-column: 1 / -1; text-align: center; color: #999; padding: 40px;">
+                            No communities yet. Create one to get started!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANALYTICS PAGE -->
+            <div class="page" id="analyticsPage">
+                <div class="page-header">
+                    <h1 class="page-title">Chat Analytics</h1>
+                    <p class="page-subtitle">Track conversation metrics and performance.</p>
+                </div>
+                <div class="page-content">
+                    <div class="analytics-grid">
+                        <div class="analytics-card highlight">
+                            <div class="analytics-label">Total Conversations</div>
+                            <div class="analytics-value">2,847</div>
+                            <div class="analytics-detail">Across all communities</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-label">Avg Messages/Conv.</div>
+                            <div class="analytics-value">8.3</div>
+                            <div class="analytics-detail">Average conversation length</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-label">Lead Conversion Rate</div>
+                            <div class="analytics-value">18.2%</div>
+                            <div class="analytics-detail">Chat to lead conversion</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-label">Avg Response Time</div>
+                            <div class="analytics-value">2.4m</div>
+                            <div class="analytics-detail">Average staff response time</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-placeholder">
+                        <div class="chart-placeholder-content">
+                            <p style="font-size: 16px; margin-bottom: 8px;">📊 Conversation Volume Over Time</p>
+                            <p style="font-size: 13px; color: #bbb;">Chart data coming soon</p>
+                        </div>
+                    </div>
+
+                    <div class="chart-placeholder">
+                        <div class="chart-placeholder-content">
+                            <p style="font-size: 16px; margin-bottom: 8px;">🎯 Conversion Funnel</p>
+                            <p style="font-size: 13px; color: #bbb;">Chat Started → Lead Created → Tour Scheduled → Converted</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-  </div>
-</div>
+    <!-- MODALS -->
+    <!-- Community Modal -->
+    <div class="modal" id="communityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="communityModalTitle">Add Community</h2>
+                <button class="modal-close" id="communityModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-section" style="margin: 0; box-shadow: none;">
+                    <form id="communityForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="communityName">Community Name</label>
+                                <input type="text" id="communityName" placeholder="e.g., Sunrise Senior Living" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="communityLocation">Location</label>
+                                <input type="text" id="communityLocation" placeholder="e.g., Chicago, IL" required>
+                            </div>
+                        </div>
 
-<script>
-const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? `http://localhost:5000`
-  : '';
-let TOKEN = localStorage.getItem('gl_token') || '';
-let communities = [];
-let leads = [];
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="brandColor">Brand Primary Color</label>
+                                <input type="color" id="brandColor" value="#003c4c" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="accentColor">Accent Color</label>
+                                <input type="color" id="accentColor" value="#a61c3b" required>
+                            </div>
+                        </div>
 
-// ── API helpers ──
-async function api(path, opts = {}) {
-  const headers = { 'Content-Type': 'application/json' };
-  if (TOKEN) headers['Authorization'] = `Bearer ${TOKEN}`;
-  const res = await fetch(`${API}${path}`, { ...opts, headers: { ...headers, ...opts.headers } });
-  if (res.status === 401) { logout(); throw new Error('Unauthorized'); }
-  return res;
-}
-async function apiJson(path, opts) { return (await api(path, opts)).json(); }
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label for="description">Description</label>
+                                <textarea id="description" placeholder="Brief description of the community"></textarea>
+                            </div>
+                        </div>
 
-// ── Auth ──
-document.getElementById('loginBtn').addEventListener('click', async () => {
-  const user = document.getElementById('loginUser').value;
-  const pass = document.getElementById('loginPass').value;
-  try {
-    const data = await apiJson('/api/auth/login', { method: 'POST', body: JSON.stringify({ username: user, password: pass }) });
-    if (data.token) {
-      TOKEN = data.token;
-      localStorage.setItem('gl_token', TOKEN);
-      showDashboard();
-    } else {
-      document.getElementById('loginErr').textContent = data.error || 'Login failed';
-      document.getElementById('loginErr').style.display = 'block';
-    }
-  } catch (e) {
-    document.getElementById('loginErr').textContent = 'Connection failed. Is the server running?';
-    document.getElementById('loginErr').style.display = 'block';
-  }
-});
-document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label for="amenities">Amenities</label>
+                                <textarea id="amenities" placeholder="List amenities (e.g., fitness center, library, dining hall)"></textarea>
+                            </div>
+                        </div>
 
-document.getElementById('logoutBtn').addEventListener('click', logout);
-function logout() {
-  TOKEN = '';
-  localStorage.removeItem('gl_token');
-  document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-}
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label for="dining">Dining Options</label>
+                                <textarea id="dining" placeholder="Describe dining options"></textarea>
+                            </div>
+                        </div>
 
-// ── Navigation ──
-document.querySelectorAll('.nav-links button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(`page-${btn.dataset.page}`).classList.add('active');
-    if (btn.dataset.page === 'leads') loadLeads();
-    if (btn.dataset.page === 'communities') loadCommunities();
-    if (btn.dataset.page === 'overview') loadOverview();
-  });
-});
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label for="activities">Activities & Programs</label>
+                                <textarea id="activities" placeholder="Describe activities and programs"></textarea>
+                            </div>
+                        </div>
 
-// ── Dashboard init ──
-async function showDashboard() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('dashboard').style.display = 'block';
-  loadOverview();
-}
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label for="petPolicy">Pet Policy</label>
+                                <textarea id="petPolicy" placeholder="Describe pet policy"></textarea>
+                            </div>
+                        </div>
 
-// ── OVERVIEW ──
-async function loadOverview() {
-  try {
-    const stats = await apiJson('/api/admin/stats');
-    document.getElementById('statsGrid').innerHTML = `
-      <div class="stat-card"><div class="label">Total Leads</div><div class="value">${stats.totalLeads}</div></div>
-      <div class="stat-card"><div class="label">New Leads</div><div class="value" style="color:var(--green)">${stats.newLeads}</div></div>
-      <div class="stat-card"><div class="label">This Week</div><div class="value">${stats.leadsThisWeek}</div></div>
-      <div class="stat-card"><div class="label">This Month</div><div class="value">${stats.leadsThisMonth}</div></div>
-      <div class="stat-card"><div class="label">Communities</div><div class="value" style="color:var(--accent)">${stats.totalCommunities}</div></div>
-    `;
-    document.getElementById('recentLeadsTable').innerHTML = stats.recentLeads.map(l => `
-      <tr>
-        <td><strong>${l.name || '—'}</strong></td>
-        <td>${l.community_name || '—'}</td>
-        <td>${l.care_type || '—'}</td>
-        <td>${l.email || '—'}</td>
-        <td><span class="badge badge-${l.status}">${l.status}</span></td>
-        <td>${l.created_at ? new Date(l.created_at).toLocaleDateString() : '—'}</td>
-      </tr>
-    `).join('');
-  } catch (e) { console.error('Failed to load overview:', e); }
-}
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label for="visitingHours">Visiting Hours</label>
+                                <textarea id="visitingHours" placeholder="e.g., Daily 8am-8pm"></textarea>
+                            </div>
+                        </div>
 
-// ── LEADS ──
-async function loadLeads() {
-  const community = document.getElementById('leadFilterCommunity').value;
-  const status = document.getElementById('leadFilterStatus').value;
-  let url = '/api/admin/leads?limit=200';
-  if (community) url += `&community=${community}`;
-  if (status) url += `&status=${status}`;
-  try {
-    const data = await apiJson(url);
-    leads = data.leads;
-    renderLeads();
-    // Populate community filter
-    const comms = await apiJson('/api/admin/communities');
-    const sel = document.getElementById('leadFilterCommunity');
-    if (sel.options.length <= 1) {
-      comms.communities.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.id; opt.textContent = c.name;
-        sel.appendChild(opt);
-      });
-    }
-  } catch (e) { console.error(e); }
-}
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label for="transportation">Transportation</label>
+                                <textarea id="transportation" placeholder="Describe transportation services"></textarea>
+                            </div>
+                        </div>
 
-function renderLeads() {
-  document.getElementById('leadsTable').innerHTML = leads.length === 0
-    ? '<tr><td colspan="9" class="empty-state">No leads yet</td></tr>'
-    : leads.map(l => `
-    <tr>
-      <td><strong>${l.name || '—'}</strong></td>
-      <td>${l.community_name || '—'}</td>
-      <td>${l.care_type || '—'}</td>
-      <td>${l.timeline || '—'}</td>
-      <td><a href="mailto:${l.email}">${l.email || '—'}</a></td>
-      <td>${l.phone || '—'}</td>
-      <td>
-        <select onchange="updateLeadStatus('${l.id}', this.value)" style="padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;">
-          <option value="new" ${l.status==='new'?'selected':''}>New</option>
-          <option value="contacted" ${l.status==='contacted'?'selected':''}>Contacted</option>
-          <option value="tour_scheduled" ${l.status==='tour_scheduled'?'selected':''}>Tour Scheduled</option>
-          <option value="closed" ${l.status==='closed'?'selected':''}>Closed</option>
-        </select>
-      </td>
-      <td>${l.created_at ? new Date(l.created_at).toLocaleDateString() : '—'}</td>
-      <td><button class="btn btn-secondary btn-sm" onclick="deleteLead('${l.id}')">×</button></td>
-    </tr>
-  `).join('');
-}
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label for="staffInfo">Staff Information</label>
+                                <textarea id="staffInfo" placeholder="Describe staff qualifications and support"></textarea>
+                            </div>
+                        </div>
 
-window.updateLeadStatus = async (id, status) => {
-  await api(`/api/admin/leads/${id}`, { method: 'PUT', body: JSON.stringify({ status }) });
-};
-window.deleteLead = async (id) => {
-  if (!confirm('Delete this lead?')) return;
-  await api(`/api/admin/leads/${id}`, { method: 'DELETE' });
-  loadLeads();
-};
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label for="moveInInfo">Move-In Process</label>
+                                <textarea id="moveInInfo" placeholder="Describe the move-in process"></textarea>
+                            </div>
+                        </div>
 
-document.getElementById('leadFilterCommunity').addEventListener('change', loadLeads);
-document.getElementById('leadFilterStatus').addEventListener('change', loadLeads);
-document.getElementById('exportBtn').addEventListener('click', async () => {
-  const community = document.getElementById('leadFilterCommunity').value;
-  let url = `${API}/api/admin/leads/export`;
-  if (community) url += `?community=${community}`;
-  const res = await fetch(url, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
-  const blob = await res.blob();
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `leads_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-});
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label for="faq">FAQ</label>
+                                <textarea id="faq" placeholder="Frequently asked questions"></textarea>
+                            </div>
+                        </div>
 
-// ── COMMUNITIES ──
-async function loadCommunities() {
-  try {
-    const data = await apiJson('/api/admin/communities');
-    communities = data.communities;
-    renderCommunities();
-  } catch (e) { console.error(e); }
-}
-
-function renderCommunities() {
-  document.getElementById('communitiesTable').innerHTML = communities.length === 0
-    ? '<tr><td colspan="6" class="empty-state"><p>No communities yet</p><button class="btn btn-primary" onclick="openCommunityModal()">Add Your First Community</button></td></tr>'
-    : communities.map(c => `
-    <tr>
-      <td><strong>${c.name}</strong><br/><span style="font-size:11px;color:var(--muted)">${c.slug}</span></td>
-      <td>${c.address || '—'}</td>
-      <td>${c.phone || '—'}</td>
-      <td>${(c.care_types||[]).map(ct => typeof ct === 'string' ? ct : ct.name).join(', ')}</td>
-      <td>—</td>
-      <td style="white-space:nowrap;">
-        <button class="btn btn-secondary btn-sm" onclick="editCommunity('${c.id}')">Edit</button>
-        <button class="btn btn-secondary btn-sm" onclick="showEmbed('${c.id}')">Embed</button>
-      </td>
-    </tr>
-  `).join('');
-}
-
-document.getElementById('addCommunityBtn').addEventListener('click', () => openCommunityModal());
-
-window.openCommunityModal = function(existing) {
-  const c = existing || {};
-  const careTypes = c.care_types || [{ name: '', startingAt: null }];
-
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal">
-      <h2>${c.id ? 'Edit' : 'Add'} Community</h2>
-      <div class="form-grid">
-        <div class="form-group"><label>Community Name *</label><input id="m-name" value="${c.name||''}"/></div>
-        <div class="form-group"><label>Slug</label><input id="m-slug" value="${c.slug||''}" placeholder="auto-generated"/></div>
-        <div class="form-group"><label>Address</label><input id="m-address" value="${c.address||''}"/></div>
-        <div class="form-group"><label>Phone</label><input id="m-phone" value="${c.phone||''}"/></div>
-        <div class="form-group"><label>Brand Color</label><input id="m-color" type="color" value="${c.brand_color||'#2E5339'}"/></div>
-        <div class="form-group"><label>Accent Color</label><input id="m-accent" type="color" value="${c.accent_color||'#4F8636'}"/></div>
-        <div class="form-group"><label>Floor Plans URL</label><input id="m-fp" value="${c.floor_plans_url||''}"/></div>
-        <div class="form-group"><label>Gallery URL</label><input id="m-gal" value="${c.gallery_url||''}"/></div>
-        <div class="form-group"><label>Logo URL</label><input id="m-logo" value="${c.logo_url||''}"/></div>
-        <div class="form-group"><label>Advisor Name</label><input id="m-advisor" value="${c.advisor_name||'Community Assistant'}"/></div>
-        <div class="form-group full">
-          <label>Care Types & Pricing</label>
-          <ul class="care-list" id="m-care">${careTypes.map((ct,i) => `
-            <li class="care-item">
-              <input placeholder="Care type name" value="${typeof ct === 'string' ? ct : ct.name||''}" class="care-name"/>
-              <input type="number" placeholder="Starting at $" value="${ct.startingAt||''}" class="care-price price-input"/>
-              <button onclick="this.parentElement.remove()">×</button>
-            </li>`).join('')}
-          </ul>
-          <button class="add-care-btn" onclick="document.getElementById('m-care').insertAdjacentHTML('beforeend','<li class=\\'care-item\\'><input placeholder=\\'Care type\\' class=\\'care-name\\'/><input type=\\'number\\' placeholder=\\'Starting at $\\' class=\\'care-price price-input\\'/><button onclick=\\'this.parentElement.remove()\\'>×</button></li>')">+ Add Care Type</button>
+                        <div class="form-row full">
+                            <div class="form-group">
+                                <label for="floorPlansUrl">Floor Plans URL</label>
+                                <input type="url" id="floorPlansUrl" placeholder="https://example.com/floor-plans">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="button button-secondary" id="communityModalCancel">Cancel</button>
+                <button class="button button-primary" id="communityModalSave">Save Community</button>
+            </div>
         </div>
-        <div class="form-group full" style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
-          <h3 style="font-size:15px;color:var(--brand);margin-bottom:12px;">Community Knowledge Base</h3>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">This information is used by the chat widget to answer visitor questions.</p>
-        </div>
-        <div class="form-group full"><label>Community Description</label><textarea id="m-desc" rows="3" placeholder="Brief description of the community...">${c.community_description||c.communityDescription||''}</textarea></div>
-        <div class="form-group"><label>Amenities</label><textarea id="m-amenities" rows="3" placeholder="Comma-separated list...">${c.amenities||''}</textarea></div>
-        <div class="form-group"><label>Dining Info</label><textarea id="m-dining" rows="3" placeholder="Meal plans, dining options...">${c.dining_info||c.diningInfo||''}</textarea></div>
-        <div class="form-group"><label>Activities</label><textarea id="m-activities" rows="3" placeholder="Activities and programs...">${c.activities||''}</textarea></div>
-        <div class="form-group"><label>Pet Policy</label><input id="m-pets" value="${c.pet_policy||c.petPolicy||''}"/></div>
-        <div class="form-group"><label>Visiting Hours</label><input id="m-visiting" value="${c.visiting_hours||c.visitingHours||''}"/></div>
-        <div class="form-group"><label>Transportation</label><input id="m-transport" value="${c.transportation||''}"/></div>
-        <div class="form-group"><label>Staff Info</label><textarea id="m-staff" rows="2" placeholder="Staffing details...">${c.staff_info||c.staffInfo||''}</textarea></div>
-        <div class="form-group full"><label>Move-in Info</label><textarea id="m-movein" rows="2" placeholder="Move-in process, availability...">${c.move_in_info||c.moveInInfo||''}</textarea></div>
-        <div class="form-group full">
-          <label>FAQ (one per line: Question | Answer)</label>
-          <textarea id="m-faq" rows="5" placeholder="What is included? | Monthly rent includes...">${(c.faq||[]).map(f => f.q + ' | ' + f.a).join('\n')}</textarea>
-        </div>
-      </div>
-      <div class="actions">
-        <button class="btn btn-primary" id="m-save">${c.id ? 'Save Changes' : 'Create Community'}</button>
-        <button class="btn btn-secondary" id="m-cancel">Cancel</button>
-        ${c.id ? `<button class="btn btn-danger" id="m-delete" style="margin-left:auto;">Delete</button>` : ''}
-      </div>
     </div>
-  `;
-  document.body.appendChild(overlay);
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
-  overlay.querySelector('#m-cancel').addEventListener('click', () => overlay.remove());
 
-  if (c.id) {
-    const del = overlay.querySelector('#m-delete');
-    if (del) del.addEventListener('click', async () => {
-      if (!confirm('Delete this community and all its data?')) return;
-      await api(`/api/admin/communities/${c.id}`, { method: 'DELETE' });
-      overlay.remove();
-      loadCommunities();
-    });
-  }
-
-  overlay.querySelector('#m-save').addEventListener('click', async () => {
-    const careItems = overlay.querySelectorAll('.care-item');
-    const careTypes = Array.from(careItems).map(li => ({
-      name: li.querySelector('.care-name').value,
-      startingAt: li.querySelector('.care-price').value ? Number(li.querySelector('.care-price').value) : null
-    })).filter(ct => ct.name);
-
-    const body = {
-      name: overlay.querySelector('#m-name').value,
-      slug: overlay.querySelector('#m-slug').value || undefined,
-      address: overlay.querySelector('#m-address').value,
-      phone: overlay.querySelector('#m-phone').value,
-      brandColor: overlay.querySelector('#m-color').value,
-      accentColor: overlay.querySelector('#m-accent').value,
-      floorPlansUrl: overlay.querySelector('#m-fp').value,
-      galleryUrl: overlay.querySelector('#m-gal').value,
-      logoUrl: overlay.querySelector('#m-logo').value,
-      advisorName: overlay.querySelector('#m-advisor').value,
-      careTypes: careTypes,
-      communityDescription: overlay.querySelector('#m-desc').value,
-      amenities: overlay.querySelector('#m-amenities').value,
-      diningInfo: overlay.querySelector('#m-dining').value,
-      activities: overlay.querySelector('#m-activities').value,
-      petPolicy: overlay.querySelector('#m-pets').value,
-      visitingHours: overlay.querySelector('#m-visiting').value,
-      transportation: overlay.querySelector('#m-transport').value,
-      staffInfo: overlay.querySelector('#m-staff').value,
-      moveInInfo: overlay.querySelector('#m-movein').value,
-      faq: overlay.querySelector('#m-faq').value.split('\n').filter(l => l.includes('|')).map(l => {
-        const [q, ...a] = l.split('|');
-        return { q: q.trim(), a: a.join('|').trim() };
-      }),
-    };
-
-    if (c.id) {
-      await api(`/api/admin/communities/${c.id}`, { method: 'PUT', body: JSON.stringify(body) });
-    } else {
-      await api('/api/admin/communities', { method: 'POST', body: JSON.stringify(body) });
-    }
-    overlay.remove();
-    loadCommunities();
-  });
-};
-
-window.editCommunity = function(id) {
-  const c = communities.find(x => x.id === id);
-  if (c) openCommunityModal(c);
-};
-
-window.showEmbed = function(id) {
-  const c = communities.find(x => x.id === id);
-  if (!c) return;
-  const code = `<script src="https://gl-chat-platform.vercel.app/widget/gl-loader.js"
-  data-community-id="${c.id}"
-  data-api="https://gl-chat-platform.vercel.app"><\/script>`;
-
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal">
-      <h2>Embed Code — ${c.name}</h2>
-      <p style="margin-bottom:16px;color:var(--muted);font-size:14px;">Add this script tag to your website to show the chat widget:</p>
-      <div class="embed-box"><button class="copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('code').textContent);this.textContent='Copied!'">Copy</button><code>${code.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</code></div>
-      <div class="actions" style="margin-top:16px;"><button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Close</button></div>
+    <!-- Embed Code Modal -->
+    <div class="modal" id="embedModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Embed Code</h2>
+                <button class="modal-close" id="embedModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 16px; font-family: 'Source Serif Pro', serif; color: #666;">
+                    Copy and paste this code into your website to embed the chat widget:
+                </p>
+                <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <pre id="embedCode" style="font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto; color: #333; margin: 0;"></pre>
+                </div>
+                <button class="button button-primary" id="copyEmbedBtn" style="margin-top: 16px; width: 100%;">
+                    📋 Copy to Clipboard
+                </button>
+            </div>
+        </div>
     </div>
-  `;
-  document.body.appendChild(overlay);
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
-};
 
-// ── Auto-login if token exists ──
-if (TOKEN) {
-  api('/api/admin/stats').then(r => {
-    if (r.ok) showDashboard();
-    else logout();
-  }).catch(logout);
-}
-</script>
+    <script>
+        // ============ CONFIG ============
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000' : '';
+        const VALID_USERNAME = 'admin';
+        const VALID_PASSWORD = 'glmc2024';
+
+        // ============ STATE ============
+        let currentUser = null;
+        let leads = [];
+        let communities = [];
+        let editingCommunityId = null;
+
+        // ============ DOM ELEMENTS ============
+        const loginPage = document.getElementById('loginPage');
+        const appContainer = document.getElementById('appContainer');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const logoutButton = document.getElementById('logoutButton');
+        const navItems = document.querySelectorAll('.nav-item');
+        const pages = document.querySelectorAll('.page');
+
+        // ============ INITIALIZATION ============
+        function init() {
+            // Check for existing session
+            const token = localStorage.getItem('adminToken');
+            if (token) {
+                currentUser = { username: VALID_USERNAME };
+                showApp();
+                loadData();
+            } else {
+                showLogin();
+            }
+
+            // Event listeners
+            loginForm.addEventListener('submit', handleLogin);
+            logoutButton.addEventListener('click', handleLogout);
+            navItems.forEach(item => item.addEventListener('click', handleNavClick));
+        }
+
+        // ============ LOGIN ============
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+                // Generate mock token
+                const token = 'glm_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('adminToken', token);
+                currentUser = { username };
+                loginError.style.display = 'none';
+                showApp();
+                loadData();
+            } else {
+                loginError.textContent = 'Invalid username or password';
+                loginError.style.display = 'block';
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('adminToken');
+            currentUser = null;
+            showLogin();
+            loginForm.reset();
+        }
+
+        function showLogin() {
+            loginPage.style.display = 'flex';
+            appContainer.classList.remove('logged-in');
+        }
+
+        function showApp() {
+            loginPage.style.display = 'none';
+            appContainer.classList.add('logged-in');
+        }
+
+        // ============ NAVIGATION ============
+        function handleNavClick(e) {
+            e.preventDefault();
+            const page = e.currentTarget.getAttribute('data-page');
+            navigateTo(page);
+        }
+
+        function navigateTo(page) {
+            // Update nav items
+            navItems.forEach(item => item.classList.remove('active'));
+            document.querySelector(`[data-page="${page}"]`).classList.add('active');
+
+            // Update pages
+            pages.forEach(p => p.classList.remove('active'));
+            document.getElementById(page + 'Page').classList.add('active');
+        }
+
+        // ============ DATA LOADING ============
+        function loadData() {
+            loadLeads();
+            loadCommunities();
+            updateStats();
+        }
+
+        function loadLeads() {
+            const token = localStorage.getItem('adminToken');
+            fetch(`${API}/api/admin/leads`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(r => r.json())
+            .then(data => {
+                leads = data || [];
+                renderLeads();
+                updateStats();
+            })
+            .catch(err => console.log('Leads load:', err));
+        }
+
+        function loadCommunities() {
+            const token = localStorage.getItem('adminToken');
+            fetch(`${API}/api/admin/communities`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(r => r.json())
+            .then(data => {
+                communities = data || [];
+                renderCommunities();
+                updateStats();
+            })
+            .catch(err => console.log('Communities load:', err));
+        }
+
+        function updateStats() {
+            document.getElementById('totalLeads').textContent = leads.length;
+            document.getElementById('totalCommunities').textContent = communities.length;
+            renderRecentLeads();
+        }
+
+        // ============ LEADS ============
+        function renderLeads() {
+            const tbody = document.getElementById('leadsTableBody');
+            if (leads.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No leads yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = leads.map(lead => `
+                <tr>
+                    <td>${escapeHtml(lead.name)}</td>
+                    <td>${escapeHtml(lead.email)}</td>
+                    <td>${escapeHtml(lead.phone || '-')}</td>
+                    <td>${escapeHtml(lead.community || '-')}</td>
+                    <td>${getStatusBadge(lead.status)}</td>
+                    <td>${formatDate(lead.createdAt)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderRecentLeads() {
+            const tbody = document.getElementById('recentLeadsBody');
+            const recent = leads.slice(-5).reverse();
+            if (recent.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">No leads yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = recent.map(lead => `
+                <tr>
+                    <td>${escapeHtml(lead.name)}</td>
+                    <td>${escapeHtml(lead.email)}</td>
+                    <td>${escapeHtml(lead.community || '-')}</td>
+                    <td>${getStatusBadge(lead.status)}</td>
+                    <td>${formatDate(lead.createdAt)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusBadge(status) {
+            const badgeClass = {
+                'New': 'badge-new',
+                'Contacted': 'badge-contacted',
+                'Tour Scheduled': 'badge-scheduled',
+                'Closed': 'badge-closed'
+            }[status] || 'badge-new';
+
+            return `<span class="badge ${badgeClass}">${status || 'New'}</span>`;
+        }
+
+        document.getElementById('statusFilter').addEventListener('change', (e) => {
+            const filter = e.target.value;
+            const tbody = document.getElementById('leadsTableBody');
+            if (!filter) {
+                renderLeads();
+                return;
+            }
+            const filtered = leads.filter(l => l.status === filter);
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No leads found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = filtered.map(lead => `
+                <tr>
+                    <td>${escapeHtml(lead.name)}</td>
+                    <td>${escapeHtml(lead.email)}</td>
+                    <td>${escapeHtml(lead.phone || '-')}</td>
+                    <td>${escapeHtml(lead.community || '-')}</td>
+                    <td>${getStatusBadge(lead.status)}</td>
+                    <td>${formatDate(lead.createdAt)}</td>
+                </tr>
+            `).join('');
+        });
+
+        document.getElementById('exportLeads').addEventListener('click', () => {
+            if (leads.length === 0) {
+                alert('No leads to export');
+                return;
+            }
+
+            let csv = 'Name,Email,Phone,Community,Status,Date\n';
+            csv += leads.map(l =>
+                `"${escapeHtml(l.name)}","${escapeHtml(l.email)}","${escapeHtml(l.phone || '')}","${escapeHtml(l.community || '')}","${l.status || 'New'}","${formatDate(l.createdAt)}"`
+            ).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `leads_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        });
+
+        // ============ COMMUNITIES ============
+        function renderCommunities() {
+            const grid = document.getElementById('communitiesGrid');
+            if (communities.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #999; padding: 40px;">No communities yet. Create one to get started!</div>';
+                return;
+            }
+
+            grid.innerHTML = communities.map(c => `
+                <div class="community-card">
+                    <div class="community-name">${escapeHtml(c.name)}</div>
+                    <div class="community-location">📍 ${escapeHtml(c.location)}</div>
+                    <div class="community-color" style="background-color: ${escapeHtml(c.brandColor || '#003c4c')}"></div>
+                    <div class="community-actions">
+                        <button class="button button-primary button-small" onclick="editCommunity('${c.id}')">Edit</button>
+                        <button class="button button-secondary button-small" onclick="showEmbedCode('${c.id}')">Embed</button>
+                        <button class="button button-secondary button-small" onclick="deleteCommunity('${c.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('addCommunityBtn').addEventListener('click', () => {
+            editingCommunityId = null;
+            document.getElementById('communityModalTitle').textContent = 'Add Community';
+            resetCommunityForm();
+            document.getElementById('communityModal').classList.add('active');
+        });
+
+        function editCommunity(id) {
+            const community = communities.find(c => c.id === id);
+            if (!community) return;
+
+            editingCommunityId = id;
+            document.getElementById('communityModalTitle').textContent = 'Edit Community';
+            document.getElementById('communityName').value = community.name || '';
+            document.getElementById('communityLocation').value = community.location || '';
+            document.getElementById('brandColor').value = community.brandColor || '#003c4c';
+            document.getElementById('accentColor').value = community.accentColor || '#a61c3b';
+            document.getElementById('description').value = community.description || '';
+            document.getElementById('amenities').value = community.amenities || '';
+            document.getElementById('dining').value = community.dining || '';
+            document.getElementById('activities').value = community.activities || '';
+            document.getElementById('petPolicy').value = community.petPolicy || '';
+            document.getElementById('visitingHours').value = community.visitingHours || '';
+            document.getElementById('transportation').value = community.transportation || '';
+            document.getElementById('staffInfo').value = community.staffInfo || '';
+            document.getElementById('moveInInfo').value = community.moveInInfo || '';
+            document.getElementById('faq').value = community.faq || '';
+            document.getElementById('floorPlansUrl').value = community.floorPlansUrl || '';
+            document.getElementById('communityModal').classList.add('active');
+        }
+
+        function resetCommunityForm() {
+            document.getElementById('communityForm').reset();
+            document.getElementById('brandColor').value = '#003c4c';
+            document.getElementById('accentColor').value = '#a61c3b';
+        }
+
+        function deleteCommunity(id) {
+            if (!confirm('Are you sure? This cannot be undone.')) return;
+
+            const token = localStorage.getItem('adminToken');
+            fetch(`${API}/api/admin/communities/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(r => r.json())
+            .then(() => {
+                communities = communities.filter(c => c.id !== id);
+                renderCommunities();
+                updateStats();
+            })
+            .catch(err => alert('Error: ' + err.message));
+        }
+
+        function showEmbedCode(id) {
+            const community = communities.find(c => c.id === id);
+            if (!community) return;
+
+            const code = `<iframe src="https://gl-chat-platform.vercel.app/chat/${id}" width="100%" height="600" frameborder="0" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></iframe>`;
+            document.getElementById('embedCode').textContent = code;
+            document.getElementById('embedModal').classList.add('active');
+        }
+
+        document.getElementById('copyEmbedBtn').addEventListener('click', () => {
+            const code = document.getElementById('embedCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Embed code copied to clipboard!');
+            });
+        });
+
+        document.getElementById('communityModalSave').addEventListener('click', () => {
+            const name = document.getElementById('communityName').value.trim();
+            const location = document.getElementById('communityLocation').value.trim();
+
+            if (!name || !location) {
+                alert('Please fill in required fields');
+                return;
+            }
+
+            const community = {
+                name,
+                location,
+                brandColor: document.getElementById('brandColor').value,
+                accentColor: document.getElementById('accentColor').value,
+                description: document.getElementById('description').value,
+                amenities: document.getElementById('amenities').value,
+                dining: document.getElementById('dining').value,
+                activities: document.getElementById('activities').value,
+                petPolicy: document.getElementById('petPolicy').value,
+                visitingHours: document.getElementById('visitingHours').value,
+                transportation: document.getElementById('transportation').value,
+                staffInfo: document.getElementById('staffInfo').value,
+                moveInInfo: document.getElementById('moveInInfo').value,
+                faq: document.getElementById('faq').value,
+                floorPlansUrl: document.getElementById('floorPlansUrl').value
+            };
+
+            const token = localStorage.getItem('adminToken');
+            const method = editingCommunityId ? 'PUT' : 'POST';
+            const url = editingCommunityId
+                ? `${API}/api/admin/communities/${editingCommunityId}`
+                : `${API}/api/admin/communities`;
+
+            fetch(url, {
+                method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(community)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (editingCommunityId) {
+                    const idx = communities.findIndex(c => c.id === editingCommunityId);
+                    if (idx >= 0) {
+                        communities[idx] = data;
+                    }
+                } else {
+                    communities.push(data);
+                }
+                renderCommunities();
+                updateStats();
+                document.getElementById('communityModal').classList.remove('active');
+                resetCommunityForm();
+            })
+            .catch(err => alert('Error: ' + err.message));
+        });
+
+        // ============ MODALS ============
+        document.getElementById('communityModalClose').addEventListener('click', () => {
+            document.getElementById('communityModal').classList.remove('active');
+            resetCommunityForm();
+        });
+
+        document.getElementById('communityModalCancel').addEventListener('click', () => {
+            document.getElementById('communityModal').classList.remove('active');
+            resetCommunityForm();
+        });
+
+        document.getElementById('embedModalClose').addEventListener('click', () => {
+            document.getElementById('embedModal').classList.remove('active');
+        });
+
+        // Close modals on background click
+        document.getElementById('communityModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('communityModal')) {
+                document.getElementById('communityModal').classList.remove('active');
+            }
+        });
+
+        document.getElementById('embedModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('embedModal')) {
+                document.getElementById('embedModal').classList.remove('active');
+            }
+        });
+
+        // ============ UTILITIES ============
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            return new Date(dateString).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: new Date(dateString).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+            });
+        }
+
+        // ============ START APP ============
+        init();
+    </script>
 </body>
 </html>
