@@ -25,12 +25,14 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 # ── File paths for persistence ──
 COMMUNITIES_FILE = "/tmp/gl_communities.json"
 LEADS_FILE = "/tmp/gl_leads.json"
+SESSIONS_FILE = "/tmp/gl_sessions.json"
 SEED_VERSION_FILE = "/tmp/gl_seed_version.txt"
 SEED_VERSION = "4"  # Bump this to force re-seed with enriched data
 
 # ── In-memory data store (synced with files on startup) ──
 COMMUNITIES = {}
 LEADS = {}
+CHAT_SESSIONS = {}  # Track all conversations (not just leads)
 
 
 def _load_from_file(filepath, default):
@@ -55,7 +57,7 @@ def _save_to_file(filepath, data):
 
 def _seed():
     """Initialize communities and leads from files or defaults."""
-    global COMMUNITIES, LEADS
+    global COMMUNITIES, LEADS, CHAT_SESSIONS
 
     # Check seed version — if outdated, wipe communities to force re-seed
     current_version = ""
@@ -83,8 +85,9 @@ def _seed():
     else:
         COMMUNITIES = _load_from_file(COMMUNITIES_FILE, {})
 
-    # Always load leads (don't wipe those)
+    # Always load leads and sessions (don't wipe those)
     LEADS = _load_from_file(LEADS_FILE, {})
+    CHAT_SESSIONS = _load_from_file(SESSIONS_FILE, {})
 
     # Seed default community if not present
     if not COMMUNITIES:
@@ -341,6 +344,75 @@ def _call_anthropic_api(system_prompt, messages):
         return None, f"Request error: {str(e)}"
 
 
+def _parse_source(page_url, referrer=""):
+    """Parse a page URL and referrer into a traffic source label."""
+    if not page_url and not referrer:
+        return "Direct"
+    url_lower = (page_url or "").lower()
+
+    # 1. Check URL params for paid campaigns first
+    if "gclid" in url_lower or ("utm_source=google" in url_lower and "utm_medium=cpc" in url_lower):
+        return "Google Ads"
+    if "fbclid" in url_lower or "utm_source=facebook" in url_lower:
+        return "Facebook Ads"
+    if "msclkid" in url_lower:
+        return "Bing Ads"
+
+    # 2. Check UTM source for any campaign tracking
+    if "utm_source" in url_lower:
+        try:
+            params = urllib.parse.parse_qs(urllib.parse.urlparse(page_url).query)
+            src = params.get("utm_source", [""])[0]
+            medium = params.get("utm_medium", [""])[0]
+            if src:
+                label = src.replace("_", " ").title()
+                if medium:
+                    label += f" ({medium})"
+                return label
+        except Exception:
+            pass
+
+    # 3. Check referrer for organic traffic sources
+    ref_lower = (referrer or "").lower()
+    if ref_lower:
+        referrer_map = {
+            "google.": "Google Organic",
+            "bing.": "Bing Organic",
+            "yahoo.": "Yahoo Organic",
+            "duckduckgo.": "DuckDuckGo",
+            "facebook.": "Facebook",
+            "instagram.": "Instagram",
+            "linkedin.": "LinkedIn",
+            "twitter.": "Twitter/X",
+            "x.com": "Twitter/X",
+            "youtube.": "YouTube",
+            "tiktok.": "TikTok",
+            "pinterest.": "Pinterest",
+            "nextdoor.": "Nextdoor",
+            "yelp.": "Yelp",
+            "caring.com": "Caring.com",
+            "aplaceformom.": "A Place for Mom",
+            "seniorly.": "Seniorly",
+            "seniorliving.": "SeniorLiving.org",
+        }
+        for pattern, label in referrer_map.items():
+            if pattern in ref_lower:
+                return label
+        # Generic referral — extract domain
+        try:
+            ref_domain = urllib.parse.urlparse(referrer).netloc
+            if ref_domain:
+                return f"Referral ({ref_domain})"
+        except Exception:
+            pass
+
+    # 4. No referrer and no UTM = Direct
+    if not ref_lower:
+        return "Direct"
+
+    return "Direct"
+
+
 def _extract_contact_info(messages):
     """Extract name, email, phone from conversation messages."""
     import re
@@ -434,10 +506,81 @@ class handler(BaseHTTPRequestHandler):
                 "recentLeads": sorted(leads_list, key=lambda x: x.get("created_at", ""), reverse=True)[:10],
             })
 
+        if path == "/api/admin/analytics":
+            if not self._auth():
+                return self._json({"error": "Unauthorized"}, 401)
+            sessions_list = list(CHAT_SESSIONS.values())
+            leads_list = list(LEADS.values())
+            week_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
+
+            # Source breakdown
+            source_map = {}
+            for s in sessions_list:
+                src = s.get("source", "Direct")
+                if src not in source_map:
+                    source_map[src] = {"source": src, "conversations": 0, "leads": 0, "messages": 0}
+                source_map[src]["conversations"] += 1
+                source_map[src]["messages"] += s.get("message_count", 0)
+                if s.get("has_lead"):
+                    source_map[src]["leads"] += 1
+
+            sources = sorted(source_map.values(), key=lambda x: x["conversations"], reverse=True)
+            for src in sources:
+                src["conversionRate"] = round((src["leads"] / src["conversations"] * 100), 1) if src["conversations"] > 0 else 0
+                src["avgMessages"] = round(src["messages"] / src["conversations"], 1) if src["conversations"] > 0 else 0
+
+            # Page breakdown
+            page_map = {}
+            for s in sessions_list:
+                page = s.get("page_url", "Unknown")
+                if page not in page_map:
+                    page_map[page] = {"page": page, "conversations": 0, "leads": 0}
+                page_map[page]["conversations"] += 1
+                if s.get("has_lead"):
+                    page_map[page]["leads"] += 1
+            pages = sorted(page_map.values(), key=lambda x: x["conversations"], reverse=True)
+
+            # Community breakdown
+            community_map = {}
+            for s in sessions_list:
+                cname = s.get("community_name", s.get("community", "Unknown"))
+                if cname not in community_map:
+                    community_map[cname] = {"community": cname, "conversations": 0, "leads": 0}
+                community_map[cname]["conversations"] += 1
+                if s.get("has_lead"):
+                    community_map[cname]["leads"] += 1
+            communities_breakdown = sorted(community_map.values(), key=lambda x: x["conversations"], reverse=True)
+
+            total_convos = len(sessions_list)
+            total_leads = len(leads_list)
+            total_with_lead = sum(1 for s in sessions_list if s.get("has_lead"))
+            this_week_convos = sum(1 for s in sessions_list if s.get("created_at", "") >= week_ago)
+            avg_msgs = round(sum(s.get("message_count", 0) for s in sessions_list) / max(total_convos, 1), 1)
+
+            return self._json({
+                "totalConversations": total_convos,
+                "totalLeads": total_leads,
+                "conversionRate": round((total_with_lead / max(total_convos, 1)) * 100, 1),
+                "conversationsThisWeek": this_week_convos,
+                "avgMessagesPerConvo": avg_msgs,
+                "bySource": sources,
+                "byPage": pages,
+                "byCommunity": communities_breakdown,
+            })
+
         if path == "/api/admin/communities":
             if not self._auth():
                 return self._json({"error": "Unauthorized"}, 401)
             return self._json({"communities": list(COMMUNITIES.values())})
+
+        if path.startswith("/api/admin/communities/"):
+            if not self._auth():
+                return self._json({"error": "Unauthorized"}, 401)
+            cid = path.split("/")[-1]
+            c = COMMUNITIES.get(cid)
+            if not c:
+                return self._json({"error": "Not found"}, 404)
+            return self._json(c)
 
         if path == "/api/admin/leads":
             if not self._auth():
@@ -488,6 +631,9 @@ class handler(BaseHTTPRequestHandler):
             community_id = data.get("communityId")
             messages = data.get("messages", [])
             lead_data = data.get("leadData")
+            session_id = data.get("sessionId", "")
+            page_url = data.get("pageUrl", "")
+            referrer = data.get("referrer", "")
 
             # Validate inputs
             if not community_id or not messages:
@@ -547,6 +693,29 @@ class handler(BaseHTTPRequestHandler):
                         "updated_at": datetime.utcnow().isoformat(),
                     }
                 _save_to_file(LEADS_FILE, LEADS)
+
+            # Track chat session for analytics
+            if session_id:
+                full_convo = messages + [{"role": "assistant", "content": response_text}]
+                if session_id in CHAT_SESSIONS:
+                    CHAT_SESSIONS[session_id]["messages"] = full_convo
+                    CHAT_SESSIONS[session_id]["message_count"] = len(full_convo)
+                    CHAT_SESSIONS[session_id]["has_lead"] = should_capture_lead
+                    CHAT_SESSIONS[session_id]["updated_at"] = datetime.utcnow().isoformat()
+                else:
+                    CHAT_SESSIONS[session_id] = {
+                        "id": session_id,
+                        "community": community_id,
+                        "community_name": community.get("name", ""),
+                        "page_url": page_url,
+                        "source": _parse_source(page_url, referrer),
+                        "referrer": referrer,
+                        "message_count": len(full_convo),
+                        "has_lead": should_capture_lead,
+                        "created_at": datetime.utcnow().isoformat(),
+                        "updated_at": datetime.utcnow().isoformat(),
+                    }
+                _save_to_file(SESSIONS_FILE, CHAT_SESSIONS)
 
             # Detect if visitor seems interested (simple heuristic)
             suggested_actions = []

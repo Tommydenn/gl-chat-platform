@@ -892,6 +892,7 @@
                 <li><a class="nav-link active" data-page="overview">Overview</a></li>
                 <li><a class="nav-link" data-page="leads">Leads</a></li>
                 <li><a class="nav-link" data-page="communities">Communities</a></li>
+                <li><a class="nav-link" data-page="analytics">Chat Analytics</a></li>
             </ul>
         </div>
 
@@ -966,6 +967,68 @@
                 </div>
                 <div class="page-content">
                     <div class="communities-grid" id="communitiesGrid"></div>
+                </div>
+            </div>
+
+            <!-- CHAT ANALYTICS PAGE -->
+            <div id="analytics" class="page">
+                <div class="page-header">
+                    <div class="page-title">Chat Analytics</div>
+                </div>
+                <div class="page-content">
+                    <div class="stats-grid" id="analyticsStatsGrid"></div>
+
+                    <div class="table-container" style="margin-top: 24px;">
+                        <div class="table-header">
+                            <div class="table-title">Traffic Sources Breakdown</div>
+                        </div>
+                        <table id="sourcesTable">
+                            <thead>
+                                <tr>
+                                    <th>Source</th>
+                                    <th>Conversations</th>
+                                    <th>Leads</th>
+                                    <th>Conversion Rate</th>
+                                    <th>Avg Messages</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-container" style="margin-top: 24px;">
+                        <div class="table-header">
+                            <div class="table-title">By Community</div>
+                        </div>
+                        <table id="communityAnalyticsTable">
+                            <thead>
+                                <tr>
+                                    <th>Community</th>
+                                    <th>Conversations</th>
+                                    <th>Leads</th>
+                                    <th>Conversion Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-container" style="margin-top: 24px;">
+                        <div class="table-header">
+                            <div class="table-title">By Page</div>
+                        </div>
+                        <table id="pageAnalyticsTable">
+                            <thead>
+                                <tr>
+                                    <th>Page URL</th>
+                                    <th>Conversations</th>
+                                    <th>Leads</th>
+                                    <th>Conversion Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -1330,6 +1393,7 @@
             if (page === 'leads') loadLeads();
             if (page === 'communities') loadCommunities();
             if (page === 'overview') loadOverviewStats();
+            if (page === 'analytics') loadAnalytics();
         }
 
         // ============ OVERVIEW ============
@@ -1359,15 +1423,15 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-card-label">Communities</div>
-                        <div class="stat-card-value">${stats.communities || 0}</div>
+                        <div class="stat-card-value">${stats.totalCommunities || 0}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-card-label">New This Week</div>
-                        <div class="stat-card-value">${stats.newThisWeek || 0}</div>
+                        <div class="stat-card-value">${stats.leadsThisWeek || 0}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-card-label">New This Month</div>
-                        <div class="stat-card-value">${stats.newThisMonth || 0}</div>
+                        <div class="stat-card-value">${stats.leadsThisMonth || 0}</div>
                     </div>
                 `;
 
@@ -1531,6 +1595,135 @@
             }
         }
 
+        // ============ CHAT ANALYTICS ============
+        async function loadAnalytics() {
+            const headers = getAuthHeaders();
+            if (!headers) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/analytics`, { headers });
+                if (response.status === 401) { showLoginPage(); return; }
+                const data = await response.json();
+
+                // Stats cards
+                document.getElementById('analyticsStatsGrid').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-card-label">Total Conversations</div>
+                        <div class="stat-card-value">${data.totalConversations || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Leads Captured</div>
+                        <div class="stat-card-value">${data.totalLeads || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Conversion Rate</div>
+                        <div class="stat-card-value">${data.conversionRate || 0}%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Avg Messages/Chat</div>
+                        <div class="stat-card-value">${data.avgMessagesPerConvo || 0}</div>
+                    </div>
+                `;
+
+                // Sources table
+                const sourcesTbody = document.querySelector('#sourcesTable tbody');
+                const sources = data.bySource || [];
+                if (sources.length === 0) {
+                    sourcesTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#8e99a4; padding:24px;">No conversation data yet. Analytics will populate as visitors use the chat widget.</td></tr>';
+                } else {
+                    sourcesTbody.innerHTML = sources.map(s => {
+                        const barWidth = Math.min(100, Math.round((s.conversations / Math.max(sources[0].conversations, 1)) * 100));
+                        return `<tr>
+                            <td><strong>${escapeHtml(s.source)}</strong></td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    ${s.conversations}
+                                    <div style="background:#e8f4f8;border-radius:2px;height:6px;width:60px;">
+                                        <div style="background:#007098;border-radius:2px;height:6px;width:${barWidth}%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="color:#007098;font-weight:600;">${s.leads}</td>
+                            <td><span style="color:${s.conversionRate > 5 ? '#059669' : '#007098'};font-weight:500;">${s.conversionRate}%</span></td>
+                            <td>${s.avgMessages}</td>
+                        </tr>`;
+                    }).join('');
+                }
+
+                // Community breakdown
+                const communityTbody = document.querySelector('#communityAnalyticsTable tbody');
+                const comms = data.byCommunity || [];
+                if (comms.length === 0) {
+                    communityTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#8e99a4;padding:24px;">No data yet</td></tr>';
+                } else {
+                    communityTbody.innerHTML = comms.map(c => {
+                        const rate = c.conversations > 0 ? Math.round((c.leads / c.conversations) * 100) : 0;
+                        return `<tr>
+                            <td><strong>${escapeHtml(c.community)}</strong></td>
+                            <td>${c.conversations}</td>
+                            <td style="color:#007098;font-weight:600;">${c.leads}</td>
+                            <td>${rate}%</td>
+                        </tr>`;
+                    }).join('');
+                }
+
+                // Page breakdown
+                const pageTbody = document.querySelector('#pageAnalyticsTable tbody');
+                const pages = data.byPage || [];
+                if (pages.length === 0) {
+                    pageTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#8e99a4;padding:24px;">No data yet</td></tr>';
+                } else {
+                    pageTbody.innerHTML = pages.map(p => {
+                        const rate = p.conversations > 0 ? Math.round((p.leads / p.conversations) * 100) : 0;
+                        return `<tr>
+                            <td style="word-break:break-all;max-width:300px;">${escapeHtml(p.page)}</td>
+                            <td>${p.conversations}</td>
+                            <td style="color:#007098;font-weight:600;">${p.leads}</td>
+                            <td>${rate}%</td>
+                        </tr>`;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+            }
+        }
+
+        // ============ SNAKE_CASE → CAMELCASE NORMALIZER ============
+        function normalizeCommunity(c) {
+            const map = {
+                advisor_name: 'advisorName', brand_color: 'brandColor',
+                brand_color_hover: 'brandColorHover', accent_color: 'accentColor',
+                secondary_color: 'secondaryColor', logo_url: 'logoUrl',
+                floor_plans_url: 'floorPlansUrl', gallery_url: 'galleryUrl',
+                floor_plans_thumb: 'floorPlansThumb', gallery_thumb: 'galleryThumb',
+                tour_enabled: 'tourEnabled', sms_enabled: 'smsEnabled',
+                care_types: 'careTypes', community_description: 'communityDescription',
+                room_types: 'roomTypes', dining_info: 'diningInfo',
+                pet_policy: 'petPolicy', visiting_hours: 'visitingHours',
+                staff_info: 'staffInfo', move_in_info: 'moveInInfo',
+                daily_living_services: 'dailyLivingServices',
+                cleaning_services: 'cleaningServices',
+                included_in_rent: 'includedInRent',
+                additional_care: 'additionalCare',
+                accepted_programs: 'acceptedPrograms',
+                smoking_policy: 'smokingPolicy',
+                religious_services: 'religiousServices',
+                created_at: 'createdAt', updated_at: 'updatedAt',
+            };
+            const result = {};
+            for (const [k, v] of Object.entries(c)) {
+                result[map[k] || k] = v;
+            }
+            // Also keep care_types as careTypes with startingAt mapped
+            if (result.careTypes && Array.isArray(result.careTypes)) {
+                result.careTypes = result.careTypes.map(ct => ({
+                    name: ct.name,
+                    price: ct.startingAt || ct.price || ''
+                }));
+            }
+            return result;
+        }
+
         // ============ COMMUNITIES ============
         async function loadCommunities() {
             const headers = getAuthHeaders();
@@ -1550,7 +1743,7 @@
                         <div class="community-card-name">${community.name}</div>
                         <div class="community-card-detail">📍 ${community.address || 'N/A'}</div>
                         <div class="community-card-detail">📞 ${community.phone || 'N/A'}</div>
-                        <div class="community-card-detail">👤 ${community.advisorName || 'N/A'}</div>
+                        <div class="community-card-detail">👤 ${community.advisor_name || community.advisorName || 'N/A'}</div>
                     </div>
                 `).join('');
             } catch (error) {
@@ -1574,7 +1767,9 @@
 
             try {
                 const response = await fetch(`${API_BASE}/api/admin/communities/${communityId}`, { headers });
-                const community = await response.json();
+                const raw = await response.json();
+                // Normalize snake_case keys to camelCase for form compatibility
+                const community = normalizeCommunity(raw);
                 currentEditingCommunityId = communityId;
 
                 document.getElementById('editorTitle').textContent = `Edit: ${community.name}`;
@@ -1635,8 +1830,8 @@
                                 <strong>Question ${idx + 1}</strong>
                                 <button type="button" class="btn btn-danger btn-sm" onclick="removeFAQItem(this)">Remove</button>
                             </div>
-                            <input type="text" placeholder="Question" value="${item.question || ''}" class="faq-question">
-                            <textarea placeholder="Answer" class="faq-answer">${item.answer || ''}</textarea>
+                            <input type="text" placeholder="Question" value="${item.question || item.q || ''}" class="faq-question">
+                            <textarea placeholder="Answer" class="faq-answer">${item.answer || item.a || ''}</textarea>
                         </div>
                     `).join('');
                 }

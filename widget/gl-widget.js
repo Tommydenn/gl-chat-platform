@@ -652,6 +652,7 @@
       this.isOpen = false;
       this.waiting = false;
       this.contactFormShown = false;
+      this.sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
     }
 
     connectedCallback() {
@@ -828,6 +829,9 @@
       const endpoint = this.config.apiEndpoint + '/api/chat';
       const payload = {
         communityId: this.config.communityId,
+        sessionId: this.sessionId,
+        pageUrl: window.location.href,
+        referrer: document.referrer || '',
         messages: this.messages
           .filter(m => m.content)
           .slice(1) // skip greeting
