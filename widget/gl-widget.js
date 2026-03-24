@@ -56,70 +56,129 @@
       right: auto;
     }
 
-    /* ─── Launcher ─── */
+    /* ─── Launcher Pill Bar ─── */
     .gl-launcher {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-      box-shadow: var(--shadow-lg), 0 0 0 0 rgba(0,112,152,0.4);
-      cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: center;
+      gap: 10px;
+      background: var(--surface);
       border: none;
-      padding: 0;
-      transition: all var(--transition);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
-      animation: pulse-ring 3s ease-out infinite;
+      animation: launcher-slide-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+      min-width: 260px;
     }
 
-    @keyframes pulse-ring {
-      0% { box-shadow: var(--shadow-lg), 0 0 0 0 rgba(0,112,152,0.35); }
-      50% { box-shadow: var(--shadow-lg), 0 0 0 12px rgba(0,112,152,0); }
-      100% { box-shadow: var(--shadow-lg), 0 0 0 0 rgba(0,112,152,0); }
+    @keyframes launcher-slide-in {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .gl-launcher:hover {
-      transform: scale(1.08);
-      box-shadow: var(--shadow-lg);
-      animation: none;
+      box-shadow: var(--shadow-lg), 0 0 0 2px var(--primary-light);
+      transform: translateY(-2px);
     }
 
-    .gl-launcher:active { transform: scale(0.95); }
+    .gl-launcher:active { transform: translateY(0); }
 
     .gl-launcher.hide {
       opacity: 0;
       pointer-events: none;
-      transform: scale(0);
+      transform: translateY(20px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 1, 1);
     }
 
-    .gl-launcher svg {
-      width: 26px;
-      height: 26px;
+    .gl-launcher-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .gl-launcher-avatar svg {
+      width: 20px;
+      height: 20px;
       color: white;
       fill: none;
       stroke: currentColor;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
+      stroke-width: 1.5;
+    }
+
+    .gl-launcher-text {
+      flex: 1;
+      text-align: left;
+      min-width: 0;
+    }
+
+    .gl-launcher-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .gl-launcher-subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .gl-launcher-close {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      transition: all var(--transition);
+      line-height: 1;
+    }
+
+    .gl-launcher-close:hover {
+      background: var(--border);
+      color: var(--text-primary);
+    }
+
+    .gl-launcher.dismissed {
+      display: none !important;
     }
 
     /* ─── Chat Window ─── */
     .gl-window {
       position: absolute;
-      bottom: 76px;
+      bottom: 0;
       right: 0;
       width: 400px;
       height: 580px;
       background: var(--surface);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-lg);
-      display: none;
       flex-direction: column;
       overflow: hidden;
       z-index: 2;
-      animation: window-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      opacity: 0;
+      transform: translateY(20px) scale(0.98);
+      pointer-events: none;
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
     }
 
     .gl-widget-root[data-position="left"] .gl-window {
@@ -127,11 +186,10 @@
       right: auto;
     }
 
-    .gl-window.open { display: flex; }
-
-    @keyframes window-enter {
-      from { opacity: 0; transform: translateY(16px) scale(0.96); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+    .gl-window.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
     }
 
     /* ─── Header ─── */
@@ -590,7 +648,13 @@
         right: 0;
       }
 
-      .gl-window {
+      .gl-launcher {
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
+        min-width: auto;
+        width: 100%;
+      }
+
+      .gl-window.open {
         position: fixed;
         top: 0;
         bottom: 0;
@@ -599,15 +663,9 @@
         width: 100%;
         height: 100%;
         border-radius: 0;
-        animation: window-enter-mobile 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
-      @keyframes window-enter-mobile {
-        from { transform: translateY(100%); }
-        to { transform: translateY(0); }
-      }
-
-      .gl-launcher.hide { display: none; }
+      .gl-launcher.hide { opacity: 0; pointer-events: none; }
     }
   `;
 
@@ -619,7 +677,14 @@
 
   const html = `
     <div class="gl-widget-root">
-      <button class="gl-launcher" aria-label="Open chat">${chatIcon}</button>
+      <div class="gl-launcher" role="button" tabindex="0" aria-label="Open chat">
+        <div class="gl-launcher-avatar">${personIcon}</div>
+        <div class="gl-launcher-text">
+          <div class="gl-launcher-title">Community Assistant</div>
+          <div class="gl-launcher-subtitle">Senior Living Community</div>
+        </div>
+        <button class="gl-launcher-close" aria-label="Dismiss">&times;</button>
+      </div>
       <div class="gl-window">
         <div class="gl-header">
           <div class="gl-header-avatar">${personIcon}</div>
@@ -701,6 +766,10 @@
       const headerName = this.shadowRoot.querySelector('.gl-header-name');
       if (headerName) headerName.textContent = this.config.communityName || 'Community Advisor';
 
+      // Launcher pill subtitle
+      const launcherSubtitle = this.shadowRoot.querySelector('.gl-launcher-subtitle');
+      if (launcherSubtitle) launcherSubtitle.textContent = this.config.communityName || 'Senior Living Community';
+
       // Events
       this._bindEvents();
 
@@ -713,19 +782,46 @@
       // Quick replies
       this._renderChips();
 
-      // Auto-open
-      if (this.config.autoOpen) {
-        setTimeout(() => this.open(), 4000);
+      // Auto-open after delay (default: true, opens after 3s)
+      const shouldAutoOpen = this.config.autoOpen !== false;
+      if (shouldAutoOpen) {
+        const delay = typeof this.config.autoOpenDelay === 'number' ? this.config.autoOpenDelay : 3000;
+        setTimeout(() => {
+          if (!this.isOpen) this.open();
+        }, delay);
       }
     }
 
     _bindEvents() {
       const launcher = this.shadowRoot.querySelector('.gl-launcher');
+      const launcherClose = this.shadowRoot.querySelector('.gl-launcher-close');
       const close = this.shadowRoot.querySelector('.gl-close');
       const send = this.shadowRoot.querySelector('.gl-send-btn');
       const input = this.shadowRoot.querySelector('.gl-input-wrap input');
 
-      launcher.addEventListener('click', () => this.open());
+      // Clicking the pill bar opens the chat
+      launcher.addEventListener('click', (e) => {
+        // Don't open if they clicked the × dismiss button
+        if (e.target.closest('.gl-launcher-close')) return;
+        this.open();
+      });
+
+      // × on pill bar dismisses it entirely
+      if (launcherClose) {
+        launcherClose.addEventListener('click', (e) => {
+          e.stopPropagation();
+          launcher.classList.add('dismissed');
+        });
+      }
+
+      // Keyboard support for pill bar
+      launcher.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.open();
+        }
+      });
+
       close.addEventListener('click', () => this.close());
       send.addEventListener('click', () => this.sendMessage());
 
@@ -743,16 +839,28 @@
 
     open() {
       this.isOpen = true;
-      this.shadowRoot.querySelector('.gl-window').classList.add('open');
-      this.shadowRoot.querySelector('.gl-launcher').classList.add('hide');
-      const input = this.shadowRoot.querySelector('.gl-input-wrap input');
-      if (input) setTimeout(() => input.focus(), 150);
+      const launcher = this.shadowRoot.querySelector('.gl-launcher');
+      const win = this.shadowRoot.querySelector('.gl-window');
+      launcher.classList.add('hide');
+      // Small delay so launcher hides first, then window slides up
+      setTimeout(() => {
+        win.classList.add('open');
+        const input = this.shadowRoot.querySelector('.gl-input-wrap input');
+        if (input) setTimeout(() => input.focus(), 200);
+      }, 50);
     }
 
     close() {
       this.isOpen = false;
-      this.shadowRoot.querySelector('.gl-window').classList.remove('open');
-      this.shadowRoot.querySelector('.gl-launcher').classList.remove('hide');
+      const launcher = this.shadowRoot.querySelector('.gl-launcher');
+      const win = this.shadowRoot.querySelector('.gl-window');
+      win.classList.remove('open');
+      // Show launcher pill after window slides down
+      setTimeout(() => {
+        if (!launcher.classList.contains('dismissed')) {
+          launcher.classList.remove('hide');
+        }
+      }, 300);
     }
 
     _time() {
