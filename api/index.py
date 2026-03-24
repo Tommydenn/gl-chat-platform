@@ -419,11 +419,26 @@ def _extract_contact_info(messages):
     info = {}
     email_pattern = re.compile(r'[\w.+-]+@[\w-]+\.[\w.-]+')
     phone_pattern = re.compile(r'[\(]?\d{3}[\)\s.-]?\s*\d{3}[\s.-]?\d{4}')
+    # Name patterns: "my name is X", "I'm X", "it's X", "this is X", "call me X", "name's X"
+    name_patterns = [
+        re.compile(r"(?:my name(?:'s| is)|i'?m|it'?s|this is|call me|name'?s)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)", re.IGNORECASE),
+    ]
 
     for msg in messages:
         if msg.get('role') != 'user':
             continue
         text = msg.get('content', '')
+
+        # Extract name
+        if not info.get('name'):
+            for pattern in name_patterns:
+                match = pattern.search(text)
+                if match:
+                    name = match.group(1).strip()
+                    # Filter out common false positives
+                    if name.lower() not in ('interested', 'looking', 'calling', 'writing', 'here', 'ready', 'fine', 'good', 'okay'):
+                        info['name'] = name
+                        break
 
         # Extract email
         if not info.get('email'):
