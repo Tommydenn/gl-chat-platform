@@ -455,6 +455,117 @@ def _extract_contact_info(messages):
     return info
 
 
+def _calculate_move_in_score(messages, lead_data=None):
+    """
+    Calculate a move-in likelihood score (0-100) based on conversation signals.
+    Inspired by Further's Move-in Prediction model.
+
+    Scoring factors:
+    - Contact info provided (name, email, phone)
+    - Care type specificity (knows what level of care they need)
+    - Timeline urgency (mentioned timeframe)
+    - Tour interest (asked about visiting)
+    - Decision stage signals (comparing communities, asked about availability)
+    - Engagement depth (number of messages, follow-up questions)
+    - Financial readiness (asked about pricing, payment options)
+    - Personal connection (mentioned specific person moving in, relationship)
+    """
+    import re
+    score = 0
+    signals = []
+
+    user_messages = [m.get('content', '') for m in messages if m.get('role') == 'user']
+    all_text = ' '.join(user_messages).lower()
+    msg_count = len(user_messages)
+
+    # ── Contact Info Provided (max 20 pts) ──
+    if lead_data:
+        if lead_data.get('name'):
+            score += 7; signals.append('provided_name')
+        if lead_data.get('email'):
+            score += 7; signals.append('provided_email')
+        if lead_data.get('phone'):
+            score += 6; signals.append('provided_phone')
+
+    # ── Care Type Specificity (max 10 pts) ──
+    care_keywords = ['assisted living', 'memory care', 'independent living', 'enhanced care', 'skilled nursing']
+    for kw in care_keywords:
+        if kw in all_text:
+            score += 10; signals.append('specific_care_type')
+            break
+
+    # ── Tour Interest (max 15 pts) ──
+    tour_patterns = [r'tour', r'visit', r'come see', r'stop by', r'walk.?through', r'check.?it out', r'look around', r'see the']
+    for p in tour_patterns:
+        if re.search(p, all_text):
+            score += 15; signals.append('tour_interest')
+            break
+
+    # ── Timeline / Urgency (max 15 pts) ──
+    urgent = [r'as soon as', r'right away', r'this week', r'this month', r'immediately', r'urgent', r'asap']
+    moderate = [r'next month', r'next few months', r'coming months', r'in the spring', r'in the summer', r'in the fall', r'in the winter', r'soon']
+    exploring = [r'just looking', r'just researching', r'exploring options', r'not sure yet', r'down the road', r'someday']
+
+    has_timeline = False
+    for p in urgent:
+        if re.search(p, all_text):
+            score += 15; signals.append('urgent_timeline'); has_timeline = True; break
+    if not has_timeline:
+        for p in moderate:
+            if re.search(p, all_text):
+                score += 10; signals.append('moderate_timeline'); has_timeline = True; break
+    if not has_timeline:
+        for p in exploring:
+            if re.search(p, all_text):
+                score += 3; signals.append('early_exploring'); has_timeline = True; break
+
+    # ── Personal Connection (max 10 pts) ──
+    personal = [r'my (mom|dad|mother|father|parent|grandmother|grandfather|grandma|grandpa|wife|husband|spouse)',
+                r'for (him|her|them|my)', r'loved one']
+    for p in personal:
+        if re.search(p, all_text):
+            score += 10; signals.append('personal_connection'); break
+
+    # ── Financial Readiness (max 10 pts) ──
+    financial = [r'cost', r'price', r'pricing', r'afford', r'budget', r'pay', r'insurance', r'medicare', r'medicaid', r'veteran', r'va benefit', r'included in rent']
+    fin_count = sum(1 for p in financial if re.search(p, all_text))
+    if fin_count >= 2:
+        score += 10; signals.append('financial_discussion')
+    elif fin_count == 1:
+        score += 5; signals.append('pricing_inquiry')
+
+    # ── Decision Stage (max 10 pts) ──
+    decision = [r'avail', r'opening', r'wait.?list', r'move.?in date', r'when can', r'how soon', r'comparing', r'other communit']
+    for p in decision:
+        if re.search(p, all_text):
+            score += 10; signals.append('decision_stage'); break
+
+    # ── Engagement Depth (max 10 pts) ──
+    if msg_count >= 6:
+        score += 10; signals.append('high_engagement')
+    elif msg_count >= 4:
+        score += 7; signals.append('moderate_engagement')
+    elif msg_count >= 2:
+        score += 3; signals.append('light_engagement')
+
+    # Cap at 100
+    score = min(score, 100)
+
+    # Determine label
+    if score >= 70:
+        label = 'High'
+    elif score >= 40:
+        label = 'Medium'
+    else:
+        label = 'Low'
+
+    return {
+        'score': score,
+        'label': label,
+        'signals': signals,
+    }
+
+
 class handler(BaseHTTPRequestHandler):
 
     def _cors(self):
@@ -669,12 +780,17 @@ class handler(BaseHTTPRequestHandler):
                 return self._json({"error": error}, 500)
 
             # Auto-detect contact info from conversation
+            full_convo = messages + [{"role": "assistant", "content": response_text}]
             detected = _extract_contact_info(messages)
 
             # Store/update lead if we have any contact info
             should_capture_lead = False
             if detected.get('email') or detected.get('phone'):
                 should_capture_lead = True
+                # Calculate move-in score
+                move_in = _calculate_move_in_score(full_convo, detected)
+                traffic_source = _parse_source(page_url, referrer)
+
                 # Check if we already have a lead for this conversation
                 existing_lead = None
                 conv_key = community_id + "_" + (detected.get('email', '') or detected.get('phone', ''))
@@ -688,7 +804,10 @@ class handler(BaseHTTPRequestHandler):
                     LEADS[existing_lead].update({
                         k: v for k, v in detected.items() if v
                     })
-                    LEADS[existing_lead]['conversation'] = messages + [{"role": "assistant", "content": response_text}]
+                    LEADS[existing_lead]['conversation'] = full_convo
+                    LEADS[existing_lead]['move_in_score'] = move_in['score']
+                    LEADS[existing_lead]['move_in_label'] = move_in['label']
+                    LEADS[existing_lead]['move_in_signals'] = move_in['signals']
                     LEADS[existing_lead]['updated_at'] = datetime.utcnow().isoformat()
                 else:
                     lid = f"lead_{uuid.uuid4().hex[:12]}"
@@ -702,7 +821,15 @@ class handler(BaseHTTPRequestHandler):
                         "care_type": "",
                         "status": "new",
                         "source": "chat_widget",
-                        "conversation": messages + [{"role": "assistant", "content": response_text}],
+                        "traffic_source": traffic_source,
+                        "referrer": referrer,
+                        "page_url": page_url,
+                        "move_in_score": move_in['score'],
+                        "move_in_label": move_in['label'],
+                        "move_in_signals": move_in['signals'],
+                        "conversation": full_convo,
+                        "notes": "",
+                        "salesperson": "",
                         "_conv_key": conv_key,
                         "created_at": datetime.utcnow().isoformat(),
                         "updated_at": datetime.utcnow().isoformat(),
@@ -711,7 +838,6 @@ class handler(BaseHTTPRequestHandler):
 
             # Track chat session for analytics
             if session_id:
-                full_convo = messages + [{"role": "assistant", "content": response_text}]
                 if session_id in CHAT_SESSIONS:
                     CHAT_SESSIONS[session_id]["messages"] = full_convo
                     CHAT_SESSIONS[session_id]["message_count"] = len(full_convo)
@@ -836,10 +962,11 @@ class handler(BaseHTTPRequestHandler):
         if "/api/admin/leads/" in path:
             lid = path.split("/")[-1]
             if lid in LEADS:
-                if "status" in data:
-                    LEADS[lid]["status"] = data["status"]
-                if "notes" in data:
-                    LEADS[lid]["notes"] = data["notes"]
+                allowed = ["status", "notes", "salesperson", "care_type"]
+                for field in allowed:
+                    if field in data:
+                        LEADS[lid][field] = data[field]
+                LEADS[lid]["updated_at"] = datetime.utcnow().isoformat()
                 _save_to_file(LEADS_FILE, LEADS)
             return self._json({"status": "ok"})
 
